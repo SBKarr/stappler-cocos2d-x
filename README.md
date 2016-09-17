@@ -35,10 +35,7 @@ Modifications
 
 This version of cocos2d-x is not compatible with original cocos2d-x release. Some modifications was made to improve performance and usability in stappler project.
 
-1. Improved `cocos2d::Node` callbacks: 
-* `onContentSizeDirty`
-* `onTransformDirty`
-* `onReorderChildDirty`
+1. Improved `cocos2d::Node` callbacks: `onContentSizeDirty`, `onTransformDirty`, `onReorderChildDirty`
 
 2. Tag for `cocos2d::Action` has `uint32_t` type instead of `int` to match `_hash32` prefix in stappler
 
