@@ -325,7 +325,6 @@
 
 /* Begin PBXFileReference section */
 		1551A342158F2AB200E66CFE /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		297C13BB1D5A20F300CF2C06 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		84668C181BBA95C700612268 /* cocos2d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = cocos2d.cpp; path = cocos/cocos2d.cpp; sourceTree = "<group>"; };
 		84668C191BBA95C700612268 /* cocos2d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cocos2d.h; path = cocos/cocos2d.h; sourceTree = "<group>"; };
 		84668C221BBA964100612268 /* edtaa3func.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = edtaa3func.cpp; sourceTree = "<group>"; };
@@ -777,7 +776,6 @@
 		1551A334158F2AB200E66CFE = {
 			isa = PBXGroup;
 			children = (
-				297C13BB1D5A20F300CF2C06 /* Config.xcconfig */,
 				84668C181BBA95C700612268 /* cocos2d.cpp */,
 				84668C191BBA95C700612268 /* cocos2d.h */,
 				84668C8B1BBA969400612268 /* 2d */,
@@ -1785,7 +1783,6 @@
 /* Begin XCBuildConfiguration section */
 		1551A34A158F2AB200E66CFE /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 297C13BB1D5A20F300CF2C06 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1832,7 +1829,6 @@
 		};
 		1551A34B158F2AB200E66CFE /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 297C13BB1D5A20F300CF2C06 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1875,7 +1871,6 @@
 		};
 		A07A4D621783777C0073F6A7 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 297C13BB1D5A20F300CF2C06 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -1892,11 +1887,11 @@
 					"$(SRCROOT)/cocos/platform/ios",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
-				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/../libs/ios/lib\"";
+				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/../../ios/lib\"";
 				"OTHER_LDFLAGS[arch=arm64]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../libs/ios/$(CURRENT_ARCH)/include";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../../ios/$(CURRENT_ARCH)/include";
 				USE_HEADERMAP = NO;
 				VALID_ARCHS = "armv7 armv7s arm64";
 			};
@@ -1904,7 +1899,6 @@
 		};
 		A07A4D631783777C0073F6A7 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 297C13BB1D5A20F300CF2C06 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -1921,11 +1915,11 @@
 					"$(SRCROOT)/cocos/platform/ios",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
-				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/../libs/ios/lib\"";
+				LIBRARY_SEARCH_PATHS = "\"$(SRCROOT)/../../ios/lib\"";
 				"OTHER_LDFLAGS[arch=arm64]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../libs/ios/$(CURRENT_ARCH)/include";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../../ios/$(CURRENT_ARCH)/include";
 				USE_HEADERMAP = NO;
 				VALID_ARCHS = "armv7 armv7s arm64";
 			};
@@ -1933,7 +1927,6 @@
 		};
 		C312165719B7630F008594D8 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 297C13BB1D5A20F300CF2C06 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1954,7 +1947,7 @@
 				"OTHER_LDFLAGS[arch=arm64]" = "";
 				PRODUCT_NAME = "cocos2dx Mac";
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/cocos/platform/mac $(SRCROOT)/cocos/platform/desktop";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/cocos/platform/mac $(SRCROOT)/cocos/platform/desktop $(SRCROOT)/../../mac/$(CURRENT_ARCH)/include";
 				USE_HEADERMAP = NO;
 				VALID_ARCHS = x86_64;
 			};
@@ -1962,7 +1955,6 @@
 		};
 		C312165819B7630F008594D8 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 297C13BB1D5A20F300CF2C06 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -1984,7 +1976,7 @@
 				"OTHER_LDFLAGS[arch=arm64]" = "";
 				PRODUCT_NAME = "cocos2dx Mac";
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/cocos/platform/mac $(SRCROOT)/cocos/platform/desktop";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/cocos/platform/mac $(SRCROOT)/cocos/platform/desktop $(SRCROOT)/../../mac/$(CURRENT_ARCH)/include";
 				USE_HEADERMAP = NO;
 				VALID_ARCHS = x86_64;
 			};
