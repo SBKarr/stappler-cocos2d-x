@@ -12,18 +12,18 @@ LOCAL_SRC_FILES := \
 		$(shell find $(LOCAL_PATH)/base -name "*.cpp") \
 		$(shell find $(LOCAL_PATH)/math -name "*.cpp") \
 		$(shell find $(LOCAL_PATH)/renderer -name "*.cpp") \
-		cocos2d.cpp \
-platform/CCGLView.cpp \
-platform/CCFileUtils.cpp \
-platform/CCSAXParser.cpp \
-platform/CCThread.cpp \
-platform/CCImage.cpp \
-../external/tinyxml2/tinyxml2.cpp \
-../external/unzip/ioapi_mem.cpp \
-../external/unzip/ioapi.cpp \
-../external/unzip/unzip.cpp \
-../external/edtaa3func/edtaa3func.cpp \
-../external/xxhash/xxhash.c
+		$(LOCAL_PATH)/cocos2d.cpp \
+		$(LOCAL_PATH)/platform/CCGLView.cpp \
+		$(LOCAL_PATH)/platform/CCFileUtils.cpp \
+		$(LOCAL_PATH)/platform/CCSAXParser.cpp \
+		$(LOCAL_PATH)/platform/CCThread.cpp \
+		$(LOCAL_PATH)/platform/CCImage.cpp \
+		$(LOCAL_PATH)/../external/tinyxml2/tinyxml2.cpp \
+		$(LOCAL_PATH)/../external/unzip/ioapi_mem.cpp \
+		$(LOCAL_PATH)/../external/unzip/ioapi.cpp \
+		$(LOCAL_PATH)/../external/unzip/unzip.cpp \
+		$(LOCAL_PATH)/../external/edtaa3func/edtaa3func.cpp \
+		$(LOCAL_PATH)/../external/xxhash/xxhash.c
 
 
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH) \
