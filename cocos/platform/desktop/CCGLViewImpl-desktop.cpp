@@ -964,4 +964,20 @@ bool GLViewImpl::initGlew()
     return true;
 }
 
+void * GLViewImpl::createSharedContext() {
+	glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+	return glfwCreateWindow(640, 480, "", nullptr, _mainWindow);
+}
+
+void GLViewImpl::freeSharedContext(void *ptr) {
+	if (ptr) {
+		glfwDestroyWindow((GLFWwindow *)ptr);
+	}
+}
+void GLViewImpl::makeCurrentContext(void *ptr) {
+	if (ptr) {
+		glfwMakeContextCurrent((GLFWwindow *)ptr);
+	}
+}
+
 NS_CC_END // end of namespace cocos2d;

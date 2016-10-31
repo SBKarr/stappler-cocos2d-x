@@ -528,12 +528,82 @@ void Texture2D::setGLProgram(GLProgram* shaderProgram)
     _shaderProgram = shaderProgram;
 }
 
+void Texture2D::setPremultipliedAlpha(bool value)
+{
+	_hasPremultipliedAlpha = value;
+}
+
 bool Texture2D::hasPremultipliedAlpha() const
 {
     return _hasPremultipliedAlpha;
 }
 
-bool Texture2D::initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh, const Size& contentSize)
+bool Texture2D::init(Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh)
+{
+    //the pixelFormat must be a certain value
+    CCASSERT(pixelFormat != PixelFormat::NONE && pixelFormat != PixelFormat::AUTO, "the \"pixelFormat\" param must be a certain value!");
+    CCASSERT(pixelsWide>0 && pixelsHigh>0, "Invalid size");
+
+    if(_pixelFormatInfoTables.find(pixelFormat) == _pixelFormatInfoTables.end()) {
+        CCLOG("cocos2d: WARNING: unsupported pixelformat: %lx", (unsigned long)pixelFormat );
+        return false;
+    }
+
+    const PixelFormatInfo& info = _pixelFormatInfoTables.at(pixelFormat);
+
+	CCASSERT(!info.compressed, "Available only for plain uncompressed textures");
+
+    if(_name != 0) {
+        GL::deleteTexture(_name);
+        _name = 0;
+    }
+
+    glGenTextures(1, &_name);
+    GL::bindTexture2D(_name);
+
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _antialiasEnabled ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _antialiasEnabled ? GL_LINEAR : GL_NEAREST );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+#if CC_ENABLE_CACHE_TEXTURE_DATA
+    if (_antialiasEnabled) {
+        TexParams texParams = {(GLuint)(_hasMipmaps?GL_LINEAR_MIPMAP_NEAREST:GL_LINEAR),GL_LINEAR,GL_NONE,GL_NONE};
+        VolatileTextureMgr::setTexParameters(this, texParams);
+    } else {
+        TexParams texParams = {(GLuint)(_hasMipmaps?GL_NEAREST_MIPMAP_NEAREST:GL_NEAREST),GL_NEAREST,GL_NONE,GL_NONE};
+        VolatileTextureMgr::setTexParameters(this, texParams);
+    }
+#endif
+
+    // clean possible GL error
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        cocos2d::log("OpenGL error 0x%04X in %s %s %d\n", err, __FILE__, __FUNCTION__, __LINE__);
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, info.internalFormat, (GLsizei)pixelsWide, (GLsizei)pixelsHigh, 0, info.format, info.type, nullptr);
+
+    err = glGetError();
+	if (err != GL_NO_ERROR) {
+		CCLOG("cocos2d: Texture2D: Error uploading compressed texture level: %u . glError: 0x%04X %d %d", 0, err, pixelsWide, pixelsHigh);
+		return false;
+	}
+
+    _contentSize = Size((float)pixelsWide, (float)pixelsHigh);
+    _pixelsWide = pixelsWide;
+    _pixelsHigh = pixelsHigh;
+    _pixelFormat = pixelFormat;
+    _maxS = 1;
+    _maxT = 1;
+
+    _hasPremultipliedAlpha = false;
+    _hasMipmaps = false;
+
+    return true;
+}
+
+bool Texture2D::initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh)
 {
     CCASSERT(dataLen>0 && pixelsWide>0 && pixelsHigh>0, "Invalid size");
 
@@ -544,7 +614,18 @@ bool Texture2D::initWithData(const void *data, ssize_t dataLen, Texture2D::Pixel
     return initWithMipmaps(&mipmap, 1, pixelFormat, pixelsWide, pixelsHigh);
 }
 
-bool Texture2D::initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh, int stride, const Size& contentSize) {
+bool Texture2D::initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh, int stride)
+{
+    if (!initWithDataThreadSafe(data, dataLen, pixelFormat, pixelsWide, pixelsHigh, stride)) {
+    	return false;
+    }
+
+    setGLProgram(GLProgramCache::getInstance()->getGLProgram(GLProgram::SHADER_NAME_POSITION_TEXTURE));
+    return true;
+}
+
+bool Texture2D::initWithDataThreadSafe(const void *data, ssize_t dataLen, Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh, int stride)
+{
     //the pixelFormat must be a certain value
     CCASSERT(pixelFormat != PixelFormat::NONE && pixelFormat != PixelFormat::AUTO, "the \"pixelFormat\" param must be a certain value!");
     CCASSERT(dataLen>0 && pixelsWide>0 && pixelsHigh>0, "Invalid size");
@@ -559,6 +640,10 @@ bool Texture2D::initWithData(const void *data, ssize_t dataLen, Texture2D::Pixel
 	CCASSERT(!info.compressed, "Available only for plain uncompressed textures");
 
 	unsigned int bytesPerRow = stride;
+	if (bytesPerRow == 0) {
+		bytesPerRow = pixelsWide * info.bpp / 8;
+	}
+
 	if(bytesPerRow % 8 == 0) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 8);
 	} else if(bytesPerRow % 4 == 0) {
@@ -623,15 +708,11 @@ bool Texture2D::initWithData(const void *data, ssize_t dataLen, Texture2D::Pixel
     _hasPremultipliedAlpha = false;
     _hasMipmaps = false;
 
-    // shader
-    setGLProgram(GLProgramCache::getInstance()->getGLProgram(GLProgram::SHADER_NAME_POSITION_TEXTURE));
     return true;
 }
 
 bool Texture2D::initWithMipmaps(MipmapInfo* mipmaps, int mipmapsNum, PixelFormat pixelFormat, int pixelsWide, int pixelsHigh)
 {
-
-
     //the pixelFormat must be a certain value
     CCASSERT(pixelFormat != PixelFormat::NONE && pixelFormat != PixelFormat::AUTO, "the \"pixelFormat\" param must be a certain value!");
     CCASSERT(pixelsWide>0 && pixelsHigh>0, "Invalid size");
@@ -778,32 +859,7 @@ bool Texture2D::initWithMipmaps(MipmapInfo* mipmaps, int mipmapsNum, PixelFormat
 
 bool Texture2D::updateWithData(const void *data,int offsetX,int offsetY,int width,int height)
 {
-    if (_name)
-    {
-        GL::bindTexture2D(_name);
-        const PixelFormatInfo& info = _pixelFormatInfoTables.at(_pixelFormat);
-
-        //Set the row align only when mipmapsNum == 1 and the data is uncompressed
-        if (!_hasMipmaps && !info.compressed) {
-            unsigned int bytesPerRow = width * info.bpp / 8;
-            if(bytesPerRow % 8 == 0) {
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 8);
-            } else if(bytesPerRow % 4 == 0) {
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-            } else if(bytesPerRow % 2 == 0) {
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 2);
-            } else {
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            }
-        } else {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        }
-
-        glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX, offsetY, width, height, info.format, info.type, data);
-        CHECK_GL_ERROR_DEBUG();
-        return true;
-    }
-    return false;
+    return updateWithData(data, offsetX, offsetY, width, height, 0);
 }
 
 bool Texture2D::updateWithData(const void *data,int offsetX,int offsetY,int width,int height, int stride)
@@ -814,7 +870,11 @@ bool Texture2D::updateWithData(const void *data,int offsetX,int offsetY,int widt
     	CCASSERT(!info.compressed, "Available only for plain uncompressed textures");
         GL::bindTexture2D(_name);
 
-		unsigned int bytesPerRow = stride;
+    	unsigned int bytesPerRow = stride;
+    	if (bytesPerRow == 0) {
+    		bytesPerRow = width * info.bpp / 8;
+    	}
+
 		if(bytesPerRow % 8 == 0) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 8);
 		} else if(bytesPerRow % 4 == 0) {
@@ -872,7 +932,6 @@ bool Texture2D::initWithImage(Image *image, PixelFormat format)
     }
 
     unsigned char*   tempData = image->getData();
-    Size             imageSize = Size((float)imageWidth, (float)imageHeight);
     PixelFormat      pixelFormat = ((PixelFormat::NONE == format) || (PixelFormat::AUTO == format)) ? image->getRenderFormat() : format;
     PixelFormat      renderFormat = image->getRenderFormat();
     size_t	         tempDataLen = image->getDataLen();
@@ -896,7 +955,7 @@ bool Texture2D::initWithImage(Image *image, PixelFormat format)
             CCLOG("cocos2d: WARNING: This image is compressed and we cann't convert it for now");
         }
 
-        initWithData(tempData, tempDataLen, image->getRenderFormat(), imageWidth, imageHeight, imageSize);
+        initWithData(tempData, tempDataLen, image->getRenderFormat(), imageWidth, imageHeight);
         return true;
     }
     else
@@ -906,7 +965,7 @@ bool Texture2D::initWithImage(Image *image, PixelFormat format)
 
         pixelFormat = convertDataToFormat(tempData, tempDataLen, renderFormat, pixelFormat, &outTempData, &outTempDataLen);
 
-        initWithData(outTempData, outTempDataLen, pixelFormat, imageWidth, imageHeight, imageSize);
+        initWithData(outTempData, outTempDataLen, pixelFormat, imageWidth, imageHeight);
 
 
         if (outTempData != nullptr && outTempData != tempData)
@@ -1257,7 +1316,7 @@ bool Texture2D::initWithString(const char *text, const FontDefinition& textDefin
     Size  imageSize = Size((float)imageWidth, (float)imageHeight);
     pixelFormat = convertDataToFormat(outData.getBytes(), imageWidth*imageHeight*4, PixelFormat::RGBA8888, pixelFormat, &outTempData, &outTempDataLen);
 
-    ret = initWithData(outTempData, outTempDataLen, pixelFormat, imageWidth, imageHeight, imageSize);
+    ret = initWithData(outTempData, outTempDataLen, pixelFormat, imageWidth, imageHeight);
 
     if (outTempData != nullptr && outTempData != outData.getBytes())
     {

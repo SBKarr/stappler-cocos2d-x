@@ -100,6 +100,10 @@ public:
     /** Get retina factor */
     virtual int getRetinaFactor() const override { return _retinaFactor; }
 
+    virtual void * createSharedContext();
+    virtual void freeSharedContext(void *);
+    virtual void makeCurrentContext(void *);
+
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
     HWND getWin32Window() { return glfwGetWin32Window(_mainWindow); }
 #endif /* (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) */

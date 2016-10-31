@@ -452,4 +452,18 @@ float GLView::getScaleY() const
     return _scaleY;
 }
 
+void * GLView::createSharedContext()
+{
+	return nullptr;
+}
+
+void GLView::freeSharedContext(void *)
+{
+
+}
+
+void GLView::makeCurrentContext(void *) {
+
+}
+
 NS_CC_END

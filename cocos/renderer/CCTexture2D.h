@@ -226,8 +226,12 @@ public:
      * @js NA
      * @lua NA
      */
-    bool initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh, const Size& contentSize);
-    bool initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh, int stride, const Size& contentSize);
+	bool init(Texture2D::PixelFormat, int pixelsWide, int pixelsHigh);
+
+    bool initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat, int pixelsWide, int pixelsHigh);
+    bool initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat, int pixelsWide, int pixelsHigh, int stride);
+
+    bool initWithDataThreadSafe(const void *data, ssize_t dataLen, Texture2D::PixelFormat, int pixelsWide, int pixelsHigh, int stride);
 
     /** Initializes with mipmaps.
 
@@ -364,6 +368,8 @@ public:
 
     /** Get content size. */
     const Size& getContentSizeInPixels();
+
+    void setPremultipliedAlpha(bool);
 
     /** Whether or not the texture has their Alpha premultiplied. */
     bool hasPremultipliedAlpha() const;

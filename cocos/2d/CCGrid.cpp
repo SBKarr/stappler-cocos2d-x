@@ -130,7 +130,7 @@ bool GridBase::initWithSize(const Size& gridSize)
     }
 
     Texture2D *texture = new (std::nothrow) Texture2D();
-    texture->initWithData(data, dataLen,  format, POTWide, POTHigh, s);
+    texture->initWithData(data, dataLen,  format, POTWide, POTHigh);
 
     free(data);
 
