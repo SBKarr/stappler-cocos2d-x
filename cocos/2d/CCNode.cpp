@@ -1876,18 +1876,17 @@ void Node::setOpacity(GLubyte opacity)
 
 void Node::updateDisplayedOpacity(GLubyte parentOpacity)
 {
-	if (_displayedOpacity != _realOpacity * parentOpacity/255.0) {
-	    _displayedOpacity = _realOpacity * parentOpacity/255.0;
-	    updateColor();
+	_displayedOpacity = _realOpacity * parentOpacity/255.0;
 
-	    if (_cascadeOpacityEnabled)
-	    {
-	        for(const auto& child : _children)
-	        {
-	            child->updateDisplayedOpacity(_displayedOpacity);
-	        }
-	    }
-	}
+	updateColor();
+
+    if (_cascadeOpacityEnabled)
+    {
+        for(const auto& child : _children)
+        {
+            child->updateDisplayedOpacity(_displayedOpacity);
+        }
+    }
 }
 
 bool Node::isCascadeOpacityEnabled(void) const

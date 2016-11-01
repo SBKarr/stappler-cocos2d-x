@@ -70,9 +70,9 @@ enum class ResolutionPolicy
     UNKNOWN,
 };
 
-/** @struct GLContextAttrs 
+/** @struct GLContextAttrs
  *
- * There are six opengl Context Attrs. 
+ * There are six opengl Context Attrs.
  */
 struct GLContextAttrs
 {
@@ -115,12 +115,12 @@ public:
     /** Exchanges the front and back buffers, subclass must implement this method. */
     virtual void swapBuffers() = 0;
 
-    /** Open or close IME keyboard , subclass must implement this method. 
+    /** Open or close IME keyboard , subclass must implement this method.
      *
      * @param open Open or close IME keyboard.
      */
     virtual void setIMEKeyboardState(bool open) = 0;
-    
+
     /** When the window is closed, it will return false if the platforms is Ios or Android.
      * If the platforms is windows or Mac,it will return true.
      *
@@ -128,18 +128,18 @@ public:
      */
     virtual bool windowShouldClose() { return false; };
 
-    /** Static method and member so that we can modify it on all platforms before create OpenGL context. 
+    /** Static method and member so that we can modify it on all platforms before create OpenGL context.
      *
      * @param glContextAttrs The OpenGL context attrs.
      */
     static void setGLContextAttrs(GLContextAttrs& glContextAttrs);
-    
-    /** Return the OpenGL context attrs. 
+
+    /** Return the OpenGL context attrs.
      *
      * @return Return the OpenGL context attrs.
      */
     static GLContextAttrs getGLContextAttrs();
-    
+
     /** The OpenGL context attrs. */
     static GLContextAttrs _glContextAttrs;
 
@@ -148,7 +148,7 @@ public:
      * does not provide event callbacks.
      */
     CC_DEPRECATED_ATTRIBUTE virtual void pollInputEvents();
-    
+
     /** Polls the events. */
     virtual void pollEvents();
 
@@ -170,18 +170,18 @@ public:
 
     /** Set zoom factor for frame. This methods are for
      * debugging big resolution (e.g.new ipad) app on desktop.
-     * 
+     *
      * @param zoomFactor The zoom factor for frame.
      */
     virtual void setFrameZoomFactor(float zoomFactor) {}
-    
+
     /** Get zoom factor for frame. This methods are for
      * debugging big resolution (e.g.new ipad) app on desktop.
      *
      * @return The zoom factor for frame.
      */
     virtual float getFrameZoomFactor() const { return 1.0; }
-    
+
     /**
      * Hide or Show the mouse cursor if there is one.
      *
@@ -197,16 +197,16 @@ public:
 
     /** Only works on ios platform. Set Content Scale of the Factor. */
     virtual bool setContentScaleFactor(float scaleFactor) { return false; }
-    
+
     /** Only works on ios platform. Get Content Scale of the Factor. */
     virtual float getContentScaleFactor() const { return 1.0; }
-    
+
     /** Returns whether or not the view is in Retina Display mode.
      *
      * @return Returns whether or not the view is in Retina Display mode.
      */
     virtual bool isRetinaDisplay() const { return false; }
- 
+
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     virtual void* getEAGLView() const { return nullptr; }
 #endif /* (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) */
@@ -284,12 +284,12 @@ public:
      */
     virtual Rect getScissorRect() const;
 
-    /** Set the view name. 
+    /** Set the view name.
      *
      * @param viewname A string will be set to the view as name.
      */
     virtual void setViewName(const std::string& viewname);
-    
+
     /** Get the view name.
      *
      * @return The view name.
@@ -304,7 +304,7 @@ public:
      * @param ys The points of y.
      */
     virtual void handleTouchesBegin(int num, intptr_t ids[], float xs[], float ys[]);
-    
+
     /** Touch events are handled by default; if you want to customize your handlers, please override this function.
      *
      * @param num The number of touch.
@@ -313,7 +313,7 @@ public:
      * @param ys The points of y.
      */
     virtual void handleTouchesMove(int num, intptr_t ids[], float xs[], float ys[]);
-    
+
     /** Touch events are handled by default; if you want to customize your handlers, please override this function.
      *
      * @param num The number of touch.
@@ -322,7 +322,7 @@ public:
      * @param ys The points of y.
      */
     virtual void handleTouchesEnd(int num, intptr_t ids[], float xs[], float ys[]);
-    
+
     /** Touch events are handled by default; if you want to customize your handlers, please override this function.
      *
      * @param num The number of touch.
@@ -338,7 +338,7 @@ public:
      * @return Return the opengl view port rectangle.
      */
     const Rect& getViewPortRect() const;
-    
+
     /**
      * Get list of all active touches.
      *
@@ -366,22 +366,6 @@ public:
      */
     ResolutionPolicy getResolutionPolicy() const { return _resolutionPolicy; }
 
-    /** Creates new shared OpenGL context
-     *
-     * @return system-depended pointer to new GLContext;
-     */
-    virtual void * createSharedContext();
-
-    /** Free shared OpenGL context
-     *
-     */
-    virtual void freeSharedContext(void *);
-
-    /** Make context current for thread
-     *
-     */
-    virtual void makeCurrentContext(void *);
-
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
     virtual HWND getWin32Window() = 0;
 #endif /* (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) */
@@ -389,10 +373,10 @@ public:
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
     virtual id getCocoaWindow() = 0;
 #endif /* (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) */
-    
+
 protected:
     void updateDesignResolutionSize();
-    
+
     void handleTouchesOfEndOrCancel(EventTouch::EventCode eventCode, int num, intptr_t ids[], float xs[], float ys[]);
 
     // real screen size

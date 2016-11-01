@@ -31,6 +31,8 @@ THE SOFTWARE.
 #include "platform/CCGLView.h"
 #include "glfw3.h"
 
+#include <set>
+
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
 #ifndef GLFW_EXPOSE_NATIVE_WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -100,9 +102,8 @@ public:
     /** Get retina factor */
     virtual int getRetinaFactor() const override { return _retinaFactor; }
 
-    virtual void * createSharedContext();
-    virtual void freeSharedContext(void *);
-    virtual void makeCurrentContext(void *);
+    void enableOffscreenContext();
+    void disableOffscreenContext();
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
     HWND getWin32Window() { return glfwGetWin32Window(_mainWindow); }
@@ -145,6 +146,7 @@ protected:
     float _frameZoomFactor;
 
     GLFWwindow* _mainWindow;
+    GLFWwindow* _offscreenWindow;
     GLFWmonitor* _monitor;
 
     float _mouseX;

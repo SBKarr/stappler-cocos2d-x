@@ -308,6 +308,7 @@ GLViewImpl::GLViewImpl()
 
 GLViewImpl::~GLViewImpl()
 {
+	glfwDestroyWindow(_offscreenWindow);
     CCLOGINFO("deallocing GLViewImpl: %p", this);
     GLFWEventHandler::setGLViewImpl(nullptr);
     glfwTerminate();
@@ -385,6 +386,9 @@ bool GLViewImpl::initWithRect(const std::string& viewName, Rect rect, float fram
                                    _viewName.c_str(),
                                    _monitor,
                                    nullptr);
+
+	glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+	_offscreenWindow = glfwCreateWindow(640, 480, "", nullptr, _mainWindow);
 
     glfwMakeContextCurrent(_mainWindow);
 
@@ -964,20 +968,12 @@ bool GLViewImpl::initGlew()
     return true;
 }
 
-void * GLViewImpl::createSharedContext() {
-	glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-	return glfwCreateWindow(640, 480, "", nullptr, _mainWindow);
+void GLViewImpl::enableOffscreenContext() {
+	glfwMakeContextCurrent(_offscreenWindow);
 }
 
-void GLViewImpl::freeSharedContext(void *ptr) {
-	if (ptr) {
-		glfwDestroyWindow((GLFWwindow *)ptr);
-	}
-}
-void GLViewImpl::makeCurrentContext(void *ptr) {
-	if (ptr) {
-		glfwMakeContextCurrent((GLFWwindow *)ptr);
-	}
+void GLViewImpl::disableOffscreenContext() {
+	glfwMakeContextCurrent(nullptr);
 }
 
 NS_CC_END // end of namespace cocos2d;
