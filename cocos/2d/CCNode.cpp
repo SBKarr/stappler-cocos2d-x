@@ -1127,6 +1127,12 @@ void Node::draw(Renderer* renderer, const Mat4 &transform, uint32_t flags, const
 
 uint32_t Node::processParentFlags(const Mat4& parentTransform, uint32_t parentFlags)
 {
+	if (_pushForceRendering)
+	{
+		parentFlags |= FLAGS_FORCE_RENDERING;
+		_pushForceRendering = false;
+	}
+
     if(_usingNormalizedPosition)
     {
         CCASSERT(_parent, "setNormalizedPosition() doesn't work with orphan nodes");

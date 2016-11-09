@@ -114,6 +114,7 @@ public:
         FLAGS_TRANSFORM_DIRTY = (1 << 0),
         FLAGS_CONTENT_SIZE_DIRTY = (1 << 1),
         FLAGS_RENDER_AS_3D = (1 << 3),
+        FLAGS_FORCE_RENDERING = (1 << 3),
 
         FLAGS_DIRTY_MASK = (FLAGS_TRANSFORM_DIRTY | FLAGS_CONTENT_SIZE_DIRTY),
     };
@@ -1651,6 +1652,8 @@ public:
     inline bool isTransitionFinished() const { return _isTransitionFinished; }
     inline bool isTransformWasDirty() const { return _transformWasDirty; }
 
+    inline void pushForceRendering() { _pushForceRendering = true; }
+
 CC_CONSTRUCTOR_ACCESS:
     // Nodes should be created using create();
     Node();
@@ -1798,6 +1801,7 @@ protected:
     std::function<void()> _onReorderChildDirtyCallback;
 
     bool _transformWasDirty = false;
+    bool _pushForceRendering = false;
 private:
     CC_DISALLOW_COPY_AND_ASSIGN(Node);
 };
