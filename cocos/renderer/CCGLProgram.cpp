@@ -681,6 +681,10 @@ GLint GLProgram::getUniformLocationForName(const char* name) const
     return glGetUniformLocation(_program, name);
 }
 
+GLint GLProgram::getUniformLocationForName(BuiltinUniform name) const {
+	return _builtInUniforms[name];
+}
+
 void GLProgram::setUniformLocationWith1i(GLint location, GLint i1)
 {
     bool updated = updateUniformLocation(location, &i1, sizeof(i1)*1);

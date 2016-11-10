@@ -117,7 +117,7 @@ public:
     };
 
     /**Preallocated uniform handle.*/
-    enum
+    enum BuiltinUniform
     {
         /**Ambient color.*/
         UNIFORM_AMBIENT_COLOR,
@@ -361,6 +361,9 @@ public:
 
     /** calls retrieves the named uniform location for this shader program. */
     GLint getUniformLocationForName(const char* name) const;
+
+    GLint getUniformLocationForName(BuiltinUniform name) const;
+
 
     /** calls glUniform1i only if the values are different than the previous call for this same shader program.
      * @js setUniformLocationI32
