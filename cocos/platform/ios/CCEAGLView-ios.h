@@ -82,8 +82,9 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
  */
 @interface CCEAGLView : UIView <UIKeyInput, UITextInput>
 {
-    id                        <CCESRenderer> renderer_;    
+    id                        <CCESRenderer> renderer_;
     EAGLContext                *context_; // weak ref
+    EAGLContext                *sharedContext_; // weak ref
 
     NSString                *pixelformat_;
     GLuint                    depthFormat_;
@@ -139,6 +140,7 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
 
 /** OpenGL context */
 @property(nonatomic,readonly) EAGLContext *context;
+@property(nonatomic,readonly) EAGLContext *sharedContext;
 
 @property(nonatomic,readwrite) BOOL multiSampling;
 

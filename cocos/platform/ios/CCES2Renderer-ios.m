@@ -43,6 +43,7 @@
 @implementation CCES2Renderer
 
 @synthesize context=context_;
+@synthesize sharedContext=sharedContext_;
 @synthesize defaultFramebuffer=defaultFramebuffer_;
 @synthesize colorRenderbuffer=colorRenderbuffer_;
 @synthesize msaaColorbuffer=msaaColorbuffer_;
@@ -64,7 +65,9 @@
             [self release];
             return nil;
         }
-        
+
+        sharedContext_ = [[EAGLContext alloc] initWithAPI:[context_ API] sharegroup: [context_ sharegroup]];
+
         depthFormat_ = depthFormat;
         pixelFormat_ = pixelFormat;
         multiSampling_ = multiSampling;

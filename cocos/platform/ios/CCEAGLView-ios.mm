@@ -89,6 +89,7 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
 @synthesize surfaceSize=size_;
 @synthesize pixelFormat=pixelformat_, depthFormat=depthFormat_;
 @synthesize context=context_;
+@synthesize sharedContext=sharedContext_;
 @synthesize multiSampling=multiSampling_;
 @synthesize isKeyboardShown=isKeyboardShown_;
 @synthesize keyboardShowNotification = keyboardShowNotification_;
@@ -230,6 +231,7 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
         return NO;
     
     context_ = [renderer_ context];
+    sharedContext_ = [renderer_ sharedContext];
     
     #if GL_EXT_discard_framebuffer == 1
         discardFramebufferSupported_ = YES;

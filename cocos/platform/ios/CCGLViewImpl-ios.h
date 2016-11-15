@@ -74,7 +74,10 @@ public:
     virtual void end() override;
     virtual void swapBuffers() override;
     virtual void setIMEKeyboardState(bool bOpen) override;
-
+    
+    void enableOffscreenContext();
+    void disableOffscreenContext();
+    
 protected:
     GLViewImpl();
     virtual ~GLViewImpl();

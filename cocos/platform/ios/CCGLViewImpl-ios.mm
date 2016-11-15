@@ -210,6 +210,14 @@ void GLViewImpl::setIMEKeyboardState(bool open)
     }
 }
 
+void GLViewImpl::enableOffscreenContext() {
+    [EAGLContext setCurrentContext: ((CCEAGLView*) _eaglview).sharedContext];
+}
+
+void GLViewImpl::disableOffscreenContext() {
+    [EAGLContext setCurrentContext: nil];
+}
+
 NS_CC_END
 
 #endif // CC_PLATFOR_IOS
