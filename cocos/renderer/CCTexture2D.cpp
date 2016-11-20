@@ -559,7 +559,9 @@ bool Texture2D::init(Texture2D::PixelFormat pixelFormat, int pixelsWide, int pix
     }
 
     glGenTextures(1, &_name);
-    GL::bindTexture2D(_name);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, _name);
 
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _antialiasEnabled ? GL_LINEAR : GL_NEAREST);
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _antialiasEnabled ? GL_LINEAR : GL_NEAREST );
@@ -663,7 +665,8 @@ bool Texture2D::initWithDataThreadSafe(const void *data, ssize_t dataLen, Textur
     }
 
     glGenTextures(1, &_name);
-    GL::bindTexture2D(_name);
+    glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, _name);
 
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _antialiasEnabled ? GL_LINEAR : GL_NEAREST);
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _antialiasEnabled ? GL_LINEAR : GL_NEAREST );
@@ -774,7 +777,8 @@ bool Texture2D::initWithMipmaps(MipmapInfo* mipmaps, int mipmapsNum, PixelFormat
     }
 
     glGenTextures(1, &_name);
-    GL::bindTexture2D(_name);
+    glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, _name);
 
     if (mipmapsNum == 1)
     {
@@ -1313,7 +1317,6 @@ bool Texture2D::initWithString(const char *text, const FontDefinition& textDefin
         return false;
     }
 
-    Size  imageSize = Size((float)imageWidth, (float)imageHeight);
     pixelFormat = convertDataToFormat(outData.getBytes(), imageWidth*imageHeight*4, PixelFormat::RGBA8888, pixelFormat, &outTempData, &outTempDataLen);
 
     ret = initWithData(outTempData, outTempDataLen, pixelFormat, imageWidth, imageHeight);
