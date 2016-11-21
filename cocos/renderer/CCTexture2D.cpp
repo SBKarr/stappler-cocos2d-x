@@ -538,7 +538,7 @@ bool Texture2D::hasPremultipliedAlpha() const
     return _hasPremultipliedAlpha;
 }
 
-bool Texture2D::init(Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh)
+bool Texture2D::init(Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh, bool init)
 {
     //the pixelFormat must be a certain value
     CCASSERT(pixelFormat != PixelFormat::NONE && pixelFormat != PixelFormat::AUTO, "the \"pixelFormat\" param must be a certain value!");
@@ -584,13 +584,15 @@ bool Texture2D::init(Texture2D::PixelFormat pixelFormat, int pixelsWide, int pix
         cocos2d::log("OpenGL error 0x%04X in %s %s %d\n", err, __FILE__, __FUNCTION__, __LINE__);
     }
 
-    glTexImage2D(GL_TEXTURE_2D, 0, info.internalFormat, (GLsizei)pixelsWide, (GLsizei)pixelsHigh, 0, info.format, info.type, nullptr);
+    if (init) {
+        glTexImage2D(GL_TEXTURE_2D, 0, info.internalFormat, (GLsizei)pixelsWide, (GLsizei)pixelsHigh, 0, info.format, info.type, nullptr);
 
-    err = glGetError();
-	if (err != GL_NO_ERROR) {
-		CCLOG("cocos2d: Texture2D: Error uploading compressed texture level: %u . glError: 0x%04X %d %d", 0, err, pixelsWide, pixelsHigh);
-		return false;
-	}
+        err = glGetError();
+    	if (err != GL_NO_ERROR) {
+    		CCLOG("cocos2d: Texture2D: Error uploading compressed texture level: %u . glError: 0x%04X %d %d", 0, err, pixelsWide, pixelsHigh);
+    		return false;
+    	}
+    }
 
     _contentSize = Size((float)pixelsWide, (float)pixelsHigh);
     _pixelsWide = pixelsWide;
@@ -656,7 +658,7 @@ bool Texture2D::initWithDataThreadSafe(const void *data, ssize_t dataLen, Textur
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	}
 #ifdef GL_UNPACK_ROW_LENGTH
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, stride / (info.bpp / 8));
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, bytesPerRow / (info.bpp / 8));
 #endif
 
     if(_name != 0) {
@@ -890,9 +892,14 @@ bool Texture2D::updateWithData(const void *data,int offsetX,int offsetY,int widt
 		}
 
 #ifdef GL_UNPACK_ROW_LENGTH
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, stride / (info.bpp / 8));
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, bytesPerRow / (info.bpp / 8));
 #endif
-		glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX, offsetY, width, height, info.format, info.type, data);
+		if (offsetX == 0 && offsetY == 0 && _pixelsWide == width && _pixelsHigh == height) {
+		    glTexImage2D(GL_TEXTURE_2D, 0, info.internalFormat, width, height, 0, info.format, info.type, data);
+		} else {
+			glTexSubImage2D(GL_TEXTURE_2D, 0, offsetX, offsetY, width, height, info.format, info.type, data);
+		}
+
 		// set GL_UNPACK_ROW_LENGTH back to 0 to avoid bugs
 #ifdef GL_UNPACK_ROW_LENGTH
 		glPixelStorei(GL_UNPACK_ROW_LENGTH,0);

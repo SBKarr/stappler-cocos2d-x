@@ -226,7 +226,7 @@ public:
      * @js NA
      * @lua NA
      */
-	bool init(Texture2D::PixelFormat, int pixelsWide, int pixelsHigh);
+	bool init(Texture2D::PixelFormat, int pixelsWide, int pixelsHigh, bool init = true);
 
     bool initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat, int pixelsWide, int pixelsHigh);
     bool initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat, int pixelsWide, int pixelsHigh, int stride);
