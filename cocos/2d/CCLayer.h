@@ -306,7 +306,7 @@ public:
     virtual const Color3B& getDisplayedColor() const override { return Layer::getDisplayedColor(); }
     virtual void setColor(const Color3B& color) override { return Layer::setColor(color); }
     virtual void updateDisplayedColor(const Color3B& parentColor) override { return Layer::updateDisplayedColor(parentColor); }
-    virtual bool isCascadeColorEnabled() const override { return Layer::isCascadeOpacityEnabled(); }
+    virtual bool isCascadeColorEnabled() const override { return Layer::isCascadeColorEnabled(); }
     virtual void setCascadeColorEnabled(bool cascadeColorEnabled) override { return Layer::setCascadeColorEnabled(cascadeColorEnabled); }
 
     virtual void setOpacityModifyRGB(bool bValue) override { return Layer::setOpacityModifyRGB(bValue); }
