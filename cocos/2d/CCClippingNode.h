@@ -183,6 +183,7 @@ protected:
     GLint _mask_layer_le;
 
     GroupCommand _groupCommand;
+    GroupCommand _stencilGroupCommand;
     CustomCommand _beforeVisitCmd;
     CustomCommand _afterDrawStencilCmd;
     CustomCommand _afterVisitCmd;

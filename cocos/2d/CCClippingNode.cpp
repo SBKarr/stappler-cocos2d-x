@@ -255,14 +255,15 @@ void ClippingNode::visit(Renderer *renderer, const Mat4 &parentTransform, uint32
     //Add group command
     zPath.push_back(getLocalZOrder());
 
-    _groupCommand.init(_globalZOrder, zPath);
-    renderer->addCommand(&_groupCommand);
-
-    renderer->pushGroup(_groupCommand.getRenderQueueID());
-
     _beforeVisitCmd.init(_globalZOrder, zPath);
     _beforeVisitCmd.func = CC_CALLBACK_0(ClippingNode::onBeforeVisit, this);
     renderer->addCommand(&_beforeVisitCmd);
+
+    _stencilGroupCommand.init(_globalZOrder, zPath);
+    renderer->addCommand(&_stencilGroupCommand);
+
+    renderer->pushGroup(_stencilGroupCommand.getRenderQueueID());
+
     if (_alphaThreshold < 1)
     {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC || CC_TARGET_PLATFORM == CC_PLATFORM_WIN32 || CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
@@ -283,10 +284,16 @@ void ClippingNode::visit(Renderer *renderer, const Mat4 &parentTransform, uint32
     }
     _stencil->visit(renderer, _modelViewTransform, flags, zPath);
 
+    renderer->popGroup();
+
     _afterDrawStencilCmd.init(_globalZOrder, zPath);
     _afterDrawStencilCmd.func = CC_CALLBACK_0(ClippingNode::onAfterDrawStencil, this);
     renderer->addCommand(&_afterDrawStencilCmd);
 
+    _groupCommand.init(_globalZOrder, zPath);
+    renderer->addCommand(&_groupCommand);
+
+    renderer->pushGroup(_groupCommand.getRenderQueueID());
     int i = 0;
     bool visibleByCamera = isVisitableByVisitingCamera();
 
@@ -315,11 +322,10 @@ void ClippingNode::visit(Renderer *renderer, const Mat4 &parentTransform, uint32
         this->draw(renderer, _modelViewTransform, flags, zPath);
     }
 
+    renderer->popGroup();
     _afterVisitCmd.init(_globalZOrder, zPath);
     _afterVisitCmd.func = CC_CALLBACK_0(ClippingNode::onAfterVisit, this);
     renderer->addCommand(&_afterVisitCmd);
-
-    renderer->popGroup();
 
     zPath.pop_back();
     director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
