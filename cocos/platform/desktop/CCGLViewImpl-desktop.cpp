@@ -47,6 +47,7 @@ namespace desktop {
 	cocos2d::Size getScreenSize();
 	void setScreenSize(const cocos2d::Size &size);
 	bool isFixed();
+	float getDensity();
 }
 
 namespace ime {
@@ -433,10 +434,11 @@ bool GLViewImpl::initWithRect(const std::string& viewName, Rect rect, float fram
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
 #if DEBUG
-    cocos2d::log("Ctrl + F1: 640x960; Ctrl + Shift + F1: 960x640");
-    cocos2d::log("Ctrl + F2: 640x1136; Ctrl + Shift + F1: 1136x640");
-    cocos2d::log("Ctrl + F3: 768x1024; Ctrl + Shift + F3: 1024x768");
-    cocos2d::log("Ctrl + F4: 1536x2048; Ctrl + Shift + F4: 2048x1536");
+    cocos2d::log("iPhone4: Portrait: Ctrl + F1; Landscape: Ctrl + Shift + F1;");
+    cocos2d::log("iPhone5: Portrait: Ctrl + F2; Landscape: Ctrl + Shift + F2;");
+    cocos2d::log("iPhone6: Portrait: Ctrl + F3; Landscape: Ctrl + Shift + F3;");
+    cocos2d::log("iPhone6+: Portrait: Ctrl + F4; Landscape: Ctrl + Shift + F4;");
+    cocos2d::log("iPad: Portrait: Ctrl + F5; Landscape: Ctrl + Shift + F5;");
 #endif
 
     return true;
@@ -755,29 +757,37 @@ void GLViewImpl::onGLFWKeyCallback(GLFWwindow *window, int key, int scancode, in
         	_shiftPressed = (GLFW_PRESS == action);
         }
 
+        auto d = stappler::platform::desktop::getDensity();
+
         if (_ctrlPressed && key == GLFW_KEY_F1 && GLFW_RELEASE == action) {
         	if (_shiftPressed) {
-            	glfwSetWindowSize(window, 960, 640);
+            	glfwSetWindowSize(window, 480 * d, 320 * d);
         	} else {
-            	glfwSetWindowSize(window, 640, 960);
+            	glfwSetWindowSize(window, 320 * d, 480 * d);
         	}
         } else if (_ctrlPressed && key == GLFW_KEY_F2 && GLFW_RELEASE == action) {
         	if (_shiftPressed) {
-            	glfwSetWindowSize(window, 1136, 640);
+            	glfwSetWindowSize(window, 568 * d, 320 * d);
         	} else {
-            	glfwSetWindowSize(window, 640, 1136);
+            	glfwSetWindowSize(window, 320 * d, 568 * d);
         	}
         } else if (_ctrlPressed && key == GLFW_KEY_F3 && GLFW_RELEASE == action) {
         	if (_shiftPressed) {
-            	glfwSetWindowSize(window, 1024, 768);
+            	glfwSetWindowSize(window, 667 * d, 375 * d);
         	} else {
-            	glfwSetWindowSize(window, 768, 1024);
+            	glfwSetWindowSize(window, 375 * d, 667 * d);
         	}
         } else if (_ctrlPressed && key == GLFW_KEY_F4 && GLFW_RELEASE == action) {
         	if (_shiftPressed) {
-            	glfwSetWindowSize(window, 2048, 1536);
+            	glfwSetWindowSize(window, 736 * d, 414 * d);
         	} else {
-            	glfwSetWindowSize(window, 1536, 2048);
+            	glfwSetWindowSize(window, 414 * d, 736 * d);
+        	}
+        } else if (_ctrlPressed && key == GLFW_KEY_F5 && GLFW_RELEASE == action) {
+        	if (_shiftPressed) {
+            	glfwSetWindowSize(window, 1024 * d, 768 * d);
+        	} else {
+            	glfwSetWindowSize(window, 768 * d, 1024 * d);
         	}
         }
     }
