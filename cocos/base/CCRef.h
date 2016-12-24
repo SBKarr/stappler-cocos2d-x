@@ -84,13 +84,7 @@ public:
      * @see release, autorelease
      * @js NA
      */
-#if (DEBUG && (LINUX || ANDROID))
-    virtual void retain();
-    virtual void release();
-#else
     void retain();
-    void release();
-#endif
 
     /**
      * Releases the ownership immediately.
@@ -103,6 +97,7 @@ public:
      * @see retain, autorelease
      * @js NA
      */
+    void release();
 
     /**
      * Releases the ownership sometime soon automatically.
