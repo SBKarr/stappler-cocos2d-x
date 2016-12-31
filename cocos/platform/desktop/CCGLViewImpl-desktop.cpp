@@ -986,4 +986,17 @@ void GLViewImpl::disableOffscreenContext() {
 	glfwMakeContextCurrent(nullptr);
 }
 
+void GLViewImpl::setClipboardString(const std::string &str) {
+	glfwSetClipboardString(_mainWindow, str.c_str());
+}
+
+std::string GLViewImpl::getClipboardString() {
+	auto str = glfwGetClipboardString(_mainWindow);
+	if (str) {
+		return std::string(str);
+	} else {
+		return std::string();
+	}
+}
+
 NS_CC_END // end of namespace cocos2d;

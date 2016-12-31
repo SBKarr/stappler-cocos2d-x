@@ -105,6 +105,9 @@ public:
     void enableOffscreenContext();
     void disableOffscreenContext();
 
+    void setClipboardString(const std::string &);
+    std::string getClipboardString();
+
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
     HWND getWin32Window() { return glfwGetWin32Window(_mainWindow); }
 #endif /* (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) */
