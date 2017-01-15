@@ -131,6 +131,14 @@ public:
         }
     }
 
+    static void onGLFWWindowFocusCallback(GLFWwindow* window, int focus)
+    {
+        if (_view)
+        {
+            _view->onGLFWWindowFocusCallback(window, focus);
+        }
+    }
+
 private:
     static GLViewImpl* _view;
 };
@@ -402,6 +410,7 @@ bool GLViewImpl::initWithRect(const std::string& viewName, Rect rect, float fram
     glfwSetFramebufferSizeCallback(_mainWindow, GLFWEventHandler::onGLFWframebuffersize);
     glfwSetWindowSizeCallback(_mainWindow, GLFWEventHandler::onGLFWWindowSizeFunCallback);
     glfwSetWindowIconifyCallback(_mainWindow, GLFWEventHandler::onGLFWWindowIconifyCallback);
+    glfwSetWindowFocusCallback(_mainWindow, GLFWEventHandler::onGLFWWindowFocusCallback);
 
     _viewPortRect = cocos2d::Rect(0, 0, rect.size.width, rect.size.height);
     setFrameSize(rect.size.width, rect.size.height);
@@ -870,6 +879,14 @@ void GLViewImpl::onGLFWWindowIconifyCallback(GLFWwindow* window, int iconified)
     {
         Application::getInstance()->applicationWillEnterForeground();
     }
+}
+
+void GLViewImpl::onGLFWWindowFocusCallback(GLFWwindow* window, int focus) {
+	if (focus == GL_TRUE) {
+        Application::getInstance()->applicationFocusGained();
+	} else {
+        Application::getInstance()->applicationFocusLost();
+	}
 }
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)

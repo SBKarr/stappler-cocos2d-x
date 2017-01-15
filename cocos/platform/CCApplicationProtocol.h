@@ -95,6 +95,10 @@ public:
     */
     virtual void applicationWillEnterForeground() = 0;
 
+    virtual void applicationFocusGained() = 0;
+    virtual void applicationFocusLost() = 0;
+    virtual void applicationDidReceiveMemoryWarning() = 0;
+
     /**
     * @brief    Callback by Director for limit FPS.
     * @param interval The time, expressed in seconds, between current frame and next.
