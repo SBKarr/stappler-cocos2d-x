@@ -122,6 +122,8 @@ public:
      */
     void removeAllEventListeners();
 
+    void setTouchListenerExclusive(EventListener *l, Touch *touch);
+
     /////////////////////////////////////////////
 
     // Pauses / Resumes event listener

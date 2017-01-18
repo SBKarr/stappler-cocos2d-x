@@ -1016,11 +1016,11 @@ void EventDispatcher::dispatchTouchEvent(EventTouch* event)
 void EventDispatcher::cancelInterceptedEvents(EventListenerVector *oneByOneListeners, std::vector<Touch*>::const_iterator &touchesIter, EventTouch* event, EventListener *l) {
     dispatchEventToListeners(oneByOneListeners, [&touchesIter, &event] (EventListener* l2) {
         EventListenerTouchOneByOne* listener = static_cast<EventListenerTouchOneByOne*>(l2);
-        
+
         // Skip if the listener was removed.
         if (!listener->_isRegistered)
         return false;
-        
+
         std::vector<Touch*>::iterator removedIter;
         if (listener->_claimedTouches.size() > 0
             && ((removedIter = std::find(listener->_claimedTouches.begin(), listener->_claimedTouches.end(), *touchesIter)) != listener->_claimedTouches.end()))
@@ -1031,7 +1031,7 @@ void EventDispatcher::cancelInterceptedEvents(EventListenerVector *oneByOneListe
                 listener->_claimedTouches.erase(removedIter);
             }
         }
-        
+
         return false;
     }, l);
 }
@@ -1393,6 +1393,33 @@ void EventDispatcher::removeAllEventListeners()
     {
         _listenerMap.clear();
     }
+}
+
+void EventDispatcher::setTouchListenerExclusive(EventListener *l, Touch *touch) {
+    auto listeners = getListeners(EventListenerTouchOneByOne::LISTENER_ID);
+
+    Event ev(Event::Type::TOUCH);
+
+    dispatchEventToListeners(listeners, [&] (EventListener* it) {
+		EventListenerTouchOneByOne* listener = static_cast<EventListenerTouchOneByOne*>(it);
+
+		// Skip if the listener was removed.
+		if (!listener->_isRegistered)
+		return false;
+
+		std::vector<Touch*>::iterator removedIter;
+		if (listener->_claimedTouches.size() > 0
+			&& ((removedIter = std::find(listener->_claimedTouches.begin(), listener->_claimedTouches.end(), touch)) != listener->_claimedTouches.end()))
+		{
+			if (listener->onTouchCancelled) {
+				listener->onTouchCancelled(touch, &ev);
+			} if (listener->_isRegistered) {
+				listener->_claimedTouches.erase(removedIter);
+			}
+		}
+
+		return false;
+	}, l);
 }
 
 void EventDispatcher::setEnabled(bool isEnabled)
