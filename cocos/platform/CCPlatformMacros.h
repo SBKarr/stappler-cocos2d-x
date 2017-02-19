@@ -33,6 +33,8 @@ Copyright (c) 2013-2015 Chukong Technologies
 #include "platform/CCPlatformConfig.h"
 #include "platform/CCPlatformDefine.h"
 
+#include "SPLayout.h"
+
 /** @def CREATE_FUNC(__TYPE__)
  * Define a create function for a specific type, such as Layer.
  *

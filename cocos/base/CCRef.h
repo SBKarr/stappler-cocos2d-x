@@ -28,6 +28,7 @@ THE SOFTWARE.
 
 #include "platform/CCPlatformMacros.h"
 #include "base/ccConfig.h"
+#include "SLRef.h"
 
 #define CC_REF_LEAK_DETECTION 0
 
@@ -73,32 +74,9 @@ public:
  * then it is easy to be shared in different places.
  * @js NA
  */
-class CC_DLL Ref
+class CC_DLL Ref : public stappler::layout::Ref
 {
 public:
-    /**
-     * Retains the ownership.
-     *
-     * This increases the Ref's reference count.
-     *
-     * @see release, autorelease
-     * @js NA
-     */
-    void retain();
-
-    /**
-     * Releases the ownership immediately.
-     *
-     * This decrements the Ref's reference count.
-     *
-     * If the reference count reaches 0 after the descrement, this Ref is
-     * destructed.
-     *
-     * @see retain, autorelease
-     * @js NA
-     */
-    void release();
-
     /**
      * Releases the ownership sometime soon automatically.
      *
@@ -116,53 +94,8 @@ public:
      */
     Ref* autorelease();
 
-    /**
-     * Returns the Ref's current reference count.
-     *
-     * @returns The Ref's reference count.
-     * @js NA
-     */
-    unsigned int getReferenceCount() const;
-
 protected:
-    /**
-     * Constructor
-     *
-     * The Ref's reference count is 1 after construction.
-     * @js NA
-     */
-    Ref();
-
-public:
-    /**
-     * Destructor
-     *
-     * @js NA
-     * @lua NA
-     */
-    virtual ~Ref();
-
-protected:
-    /// count of references
-    unsigned int _referenceCount;
-
     friend class AutoreleasePool;
-
-#if CC_ENABLE_SCRIPT_BINDING
-public:
-    /// object id, ScriptSupport need public _ID
-    unsigned int        _ID;
-    /// Lua reference id
-    int                 _luaID;
-    /// scriptObject, support for swift
-    void* _scriptObject;
-#endif
-
-    // Memory leak diagnostic data (only included when CC_REF_LEAK_DETECTION is defined and its value isn't zero)
-#if CC_REF_LEAK_DETECTION
-public:
-    static void printLeaks();
-#endif
 };
 
 class Node;

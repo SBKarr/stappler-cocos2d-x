@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define __CC_FRAMEWORK_COMCONTAINER_H__
 
 #include "base/CCVector.h"
+#include "math/Mat4.h"
 #include <string>
 #include <vector>
 
@@ -34,7 +35,6 @@ NS_CC_BEGIN
 class Component;
 class Node;
 class Renderer;
-class Mat4;
 
 class CC_DLL ComponentContainer
 {

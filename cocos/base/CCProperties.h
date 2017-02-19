@@ -37,11 +37,6 @@
 NS_CC_BEGIN
 
 class Properties;
-class Vec2;
-class Vec3;
-class Vec4;
-class Mat4;
-class Data;
 class Data;
 
 

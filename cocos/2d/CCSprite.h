@@ -40,8 +40,6 @@ NS_CC_BEGIN
 class SpriteBatchNode;
 class SpriteFrame;
 class Animation;
-class Rect;
-class Size;
 class Texture2D;
 struct transformValues_;
 

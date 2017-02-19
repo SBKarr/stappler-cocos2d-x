@@ -85,7 +85,6 @@ THE SOFTWARE.
 #include "math/Vec4.h"
 #include "math/Mat4.h"
 #include "math/Quaternion.h"
-#include "math/MathUtil.h"
 #include "math/CCVertex.h"
 
 // actions

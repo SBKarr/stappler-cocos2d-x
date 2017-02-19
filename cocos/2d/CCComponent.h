@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define __CC_FRAMEWORK_COMPONENT_H__
 
 #include "base/CCRef.h"
+#include "math/CCMath.h"
 #include <string>
 #include <vector>
 
@@ -33,7 +34,6 @@ NS_CC_BEGIN
 
 class Node;
 class Renderer;
-class Mat4;
 
 class CC_DLL Component : public Ref {
 public:

@@ -34,7 +34,6 @@ THE SOFTWARE.
 #include <string>
 
 NS_CC_BEGIN
-class Rect;
 
 class Application : public ApplicationProtocol
 {
