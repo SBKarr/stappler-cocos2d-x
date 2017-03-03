@@ -538,7 +538,7 @@ bool Texture2D::hasPremultipliedAlpha() const
     return _hasPremultipliedAlpha;
 }
 
-bool Texture2D::init(Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh, bool init)
+bool Texture2D::init(Texture2D::PixelFormat pixelFormat, int pixelsWide, int pixelsHigh, InitAs init)
 {
     //the pixelFormat must be a certain value
     CCASSERT(pixelFormat != PixelFormat::NONE && pixelFormat != PixelFormat::AUTO, "the \"pixelFormat\" param must be a certain value!");
@@ -584,7 +584,11 @@ bool Texture2D::init(Texture2D::PixelFormat pixelFormat, int pixelsWide, int pix
         cocos2d::log("OpenGL error 0x%04X in %s %s %d\n", err, __FILE__, __FUNCTION__, __LINE__);
     }
 
-    if (init) {
+    if (init == RenderTarget) {
+    	_renderTarget = true;
+    }
+
+    if (init != Empty) {
         glTexImage2D(GL_TEXTURE_2D, 0, info.internalFormat, (GLsizei)pixelsWide, (GLsizei)pixelsHigh, 0, info.format, info.type, nullptr);
 
         err = glGetError();

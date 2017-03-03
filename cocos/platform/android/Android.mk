@@ -35,4 +35,8 @@ LOCAL_EXPORT_LDLIBS := -lGLESv1_CM \
                        -lz \
                        -landroid
 
+LOCAL_STATIC_LIBRARIES := layout_static
+
 include $(BUILD_STATIC_LIBRARY)
+
+$(call import-module,layout)

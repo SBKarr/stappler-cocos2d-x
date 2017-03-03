@@ -215,18 +215,14 @@ public:
      */
 	void releaseGLTexture();
 
-    /** Initializes with a texture2d with data.
 
-     @param data Specifies a pointer to the image data in memory.
-     @param dataLen The image data length.
-     @param pixelFormat The image pixelFormat.
-     @param pixelsWide The image width.
-     @param pixelsHigh The image height.
-     @param contentSize The image content size.
-     * @js NA
-     * @lua NA
-     */
-	bool init(Texture2D::PixelFormat, int pixelsWide, int pixelsHigh, bool init = true);
+	enum InitAs {
+		Empty,
+		DataTexture,
+		RenderTarget,
+	};
+
+	bool init(Texture2D::PixelFormat, int pixelsWide, int pixelsHigh, InitAs init = DataTexture);
 
     bool initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat, int pixelsWide, int pixelsHigh);
     bool initWithData(const void *data, ssize_t dataLen, Texture2D::PixelFormat, int pixelsWide, int pixelsHigh, int stride);
@@ -496,6 +492,7 @@ protected:
     GLProgram* _shaderProgram;
 
     bool _antialiasEnabled;
+    bool _renderTarget = false;
 
 public:
     static const PixelFormatInfoMap _pixelFormatInfoTables;

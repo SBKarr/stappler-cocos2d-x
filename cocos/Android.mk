@@ -56,6 +56,7 @@ LOCAL_STATIC_LIBRARIES := cocos_freetype2_static
 LOCAL_STATIC_LIBRARIES += cocos_png_static
 LOCAL_STATIC_LIBRARIES += cocos_jpeg_static
 LOCAL_STATIC_LIBRARIES += cpufeatures
+LOCAL_STATIC_LIBRARIES += layout_static
 
 LOCAL_WHOLE_STATIC_LIBRARIES := cocos2dxandroid_static
 
@@ -73,4 +74,5 @@ include $(BUILD_STATIC_LIBRARY)
 
 $(call import-module,platform/android)
 $(call import-module,libs)
+$(call import-module,layout)
 $(call import-module,android/cpufeatures)
