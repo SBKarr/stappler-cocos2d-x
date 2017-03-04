@@ -34,8 +34,6 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class Rect;
-
 class CC_DLL Application : public ApplicationProtocol
 {
 public:

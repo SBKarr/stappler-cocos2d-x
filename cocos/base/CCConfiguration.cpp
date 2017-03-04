@@ -134,7 +134,7 @@ void Configuration::gatherGPUInfo()
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     glGetIntegerv(GL_MAX_SAMPLES_APPLE, &_maxSamplesAllowed);
-	_valueDict["gl.max_samples_allowed"] = Value((int)_maxSamplesAllowed);
+	_data.setInteger(_maxSamplesAllowed, "gl.max_samples_allowed");
 #endif
 
     CharReaderBase r(_glExtensions, strlen(_glExtensions));

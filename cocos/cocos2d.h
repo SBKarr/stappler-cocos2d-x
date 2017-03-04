@@ -54,8 +54,6 @@ THE SOFTWARE.
 #include "base/ZipUtils.h"
 #include "base/CCProfiling.h"
 #include "base/CCConsole.h"
-#include "base/CCIMEDelegate.h"
-#include "base/CCIMEDispatcher.h"
 #include "base/ccUtils.h"
 
 // EventDispatcher
@@ -127,7 +125,6 @@ THE SOFTWARE.
 #include "platform/CCCommon.h"
 #include "platform/CCFileUtils.h"
 #include "platform/CCImage.h"
-#include "platform/CCSAXParser.h"
 #include "platform/CCThread.h"
 #include "platform/CCPlatformConfig.h"
 #include "platform/CCPlatformMacros.h"

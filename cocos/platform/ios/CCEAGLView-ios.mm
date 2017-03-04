@@ -70,7 +70,6 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
 
 #import "base/CCDirector.h"
 #import "base/CCTouch.h"
-#import "base/CCIMEDispatcher.h"
 #import "CCGLViewImpl-ios.h"
 #import "CCES2Renderer-ios.h"
 #import "OpenGL_Internal-ios.h"
@@ -511,7 +510,6 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
         markedText_ = nil;
     }
     const char * pszText = [text cStringUsingEncoding:NSUTF8StringEncoding];
-    cocos2d::IMEDispatcher::sharedDispatcher()->dispatchInsertText(pszText, strlen(pszText));
 }
 
 - (void)deleteBackward
@@ -520,7 +518,6 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
         [markedText_ release];
         markedText_ = nil;
     }
-    cocos2d::IMEDispatcher::sharedDispatcher()->dispatchDeleteBackward();
 }
 
 #pragma mark - UITextInputTrait protocol
@@ -616,10 +613,6 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
     {
         return;
     }
-    const char * pszText = [markedText_ cStringUsingEncoding:NSUTF8StringEncoding];
-    cocos2d::IMEDispatcher::sharedDispatcher()->dispatchInsertText(pszText, strlen(pszText));
-    [markedText_ release];
-    markedText_ = nil;
 }
 
 #pragma mark Methods for creating ranges and positions.
@@ -800,28 +793,14 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
     begin = CGRectApplyAffineTransform(begin, CGAffineTransformScale(CGAffineTransformIdentity, 1.0f/scaleX, 1.0f/scaleY));
     end = CGRectApplyAffineTransform(end, CGAffineTransformScale(CGAffineTransformIdentity, 1.0f/scaleX, 1.0f/scaleY));
 
-    
-    cocos2d::IMEKeyboardNotificationInfo notiInfo;
-    notiInfo.begin = cocos2d::Rect(begin.origin.x,
-                                     begin.origin.y,
-                                     begin.size.width,
-                                     begin.size.height);
-    notiInfo.end = cocos2d::Rect(end.origin.x,
-                                   end.origin.y,
-                                   end.size.width,
-                                   end.size.height);
-    notiInfo.duration = (float)aniDuration;
-    
-    cocos2d::IMEDispatcher* dispatcher = cocos2d::IMEDispatcher::sharedDispatcher();
+
     if (UIKeyboardWillShowNotification == type) 
     {
         self.keyboardShowNotification = notif; // implicit copy
-        dispatcher->dispatchKeyboardWillShow(notiInfo);
     }
     else if (UIKeyboardDidShowNotification == type)
     {
         //CGSize screenSize = self.window.screen.bounds.size;
-        dispatcher->dispatchKeyboardDidShow(notiInfo);
         caretRect_ = end;
         caretRect_.origin.y = viewSize.height - (caretRect_.origin.y + caretRect_.size.height + [UIFont smallSystemFontSize]);
         caretRect_.size.height = 0;
@@ -829,12 +808,10 @@ Copyright (C) 2008 Apple Inc. All Rights Reserved.
     }
     else if (UIKeyboardWillHideNotification == type)
     {
-        dispatcher->dispatchKeyboardWillHide(notiInfo);
     }
     else if (UIKeyboardDidHideNotification == type)
     {
         caretRect_ = CGRectZero;
-        dispatcher->dispatchKeyboardDidHide(notiInfo);
         isKeyboardShown_ = NO;
     }
 }

@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
+#include "platform/CCPlatformConfig.h"
 #import <Foundation/Foundation.h>
 
 #include "platform/CCThread.h"

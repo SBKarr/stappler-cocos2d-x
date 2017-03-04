@@ -35,7 +35,7 @@ THE SOFTWARE.
 #include "base/CCEventMouse.h"
 #include "base/ccUtils.h"
 
-#if (LINUX || __MINGW32__)
+#if (LINUX || __MINGW32__ || MACOSX)
 #include "SPPlatform.h"
 #include "SPScreen.h"
 

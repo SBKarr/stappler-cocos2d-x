@@ -191,7 +191,7 @@
 
 - (NSString*) description
 {
-    return [NSString stringWithFormat:@"<%@ = %08X | size = %ix%i>", [self class], (unsigned int)self, backingWidth_, backingHeight_];
+    return [NSString stringWithFormat:@"<%@ = size = %ix%i>", [self class], backingWidth_, backingHeight_];
 }
 
 - (unsigned int) colorRenderBuffer
