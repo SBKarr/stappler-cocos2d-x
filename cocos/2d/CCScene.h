@@ -80,7 +80,6 @@ public:
     static Scene *createWithSize(const Size& size);
 
     using Node::addChild;
-    virtual std::string getDescription() const override;
     
     /** Get all cameras.
      * 

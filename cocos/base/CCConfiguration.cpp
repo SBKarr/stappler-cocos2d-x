@@ -24,14 +24,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
+#include "SPLayout.h"
 #include "base/CCConfiguration.h"
 #include "platform/CCFileUtils.h"
 
+USING_NS_SP;
+
 NS_CC_BEGIN
+
+static uint32_t s_supportedRenderTarget =
+#ifndef GL_ES_VERSION_2_0
+		toInt(Configuration::RenderTarget::RGBA8)
+		| toInt(Configuration::RenderTarget::RGB8)
+		| toInt(Configuration::RenderTarget::R8)
+		| toInt(Configuration::RenderTarget::A8);
+#else
+		0;
+#endif
 
 extern const char* cocos2dVersion();
 
 Configuration* Configuration::s_sharedConfiguration = nullptr;
+
+bool Configuration::isRenderTargetSupported(RenderTarget target) {
+	return (s_supportedRenderTarget & toInt(target)) != 0;
+}
 
 Configuration::Configuration()
 : _maxTextureSize(0)
@@ -55,25 +72,25 @@ Configuration::Configuration()
 
 bool Configuration::init()
 {
-	_valueDict["cocos2d.x.version"] = Value(cocos2dVersion());
+	_data.setString(cocos2dVersion(), "cocos2d.x.version");
 
 
 #if CC_ENABLE_PROFILERS
-	_valueDict["cocos2d.x.compiled_with_profiler"] = Value(true);
+	_data.setBool(true, "cocos2d.x.compiled_with_profiler");
 #else
-	_valueDict["cocos2d.x.compiled_with_profiler"] = Value(false);
+	_data.setBool(false, "cocos2d.x.compiled_with_profiler");
 #endif
 
 #if CC_ENABLE_GL_STATE_CACHE == 0
-	_valueDict["cocos2d.x.compiled_with_gl_state_cache"] = Value(false);
+	_data.setBool(false, "cocos2d.x.compiled_with_gl_state_cache");
 #else
-    _valueDict["cocos2d.x.compiled_with_gl_state_cache"] = Value(true);
+	_data.setBool(true, "cocos2d.x.compiled_with_gl_state_cache");
 #endif
 
 #if COCOS2D_DEBUG
-	_valueDict["cocos2d.x.build_type"] = Value("DEBUG");
+	_data.setString("DEBUG", "cocos2d.x.build_type");
 #else
-    _valueDict["cocos2d.x.build_type"] = Value("RELEASE");
+	_data.setString("RELEASE", "cocos2d.x.build_type");
 #endif
 
 	return true;
@@ -95,52 +112,66 @@ std::string Configuration::getInfo() const
 #endif
 
     // Dump
-    Value forDump = Value(_valueDict);
-    return forDump.getDescription();
+    return stappler::data::toString(_data, true);
 }
 
 void Configuration::gatherGPUInfo()
 {
-	_valueDict["gl.vendor"] = Value((const char*)glGetString(GL_VENDOR));
-	_valueDict["gl.renderer"] = Value((const char*)glGetString(GL_RENDERER));
-	_valueDict["gl.version"] = Value((const char*)glGetString(GL_VERSION));
-
-    _glExtensions = (char *)glGetString(GL_EXTENSIONS);
+	_data.setString((const char*)glGetString(GL_VENDOR), "gl.vendor");
+	_data.setString((const char*)glGetString(GL_RENDERER), "gl.renderer");
+	_data.setString((const char*)glGetString(GL_VERSION), "gl.version");
 
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_maxTextureSize);
-	_valueDict["gl.max_texture_size"] = Value((int)_maxTextureSize);
+	_data.setInteger(_maxTextureSize, "gl.max_texture_size");
 
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &_maxTextureUnits);
-	_valueDict["gl.max_texture_units"] = Value((int)_maxTextureUnits);
+	_data.setInteger(_maxTextureUnits, "gl.max_texture_units");
+
+    _supportsNPOT = true;
+	_data.setBool(_supportsNPOT, "gl.supports_NPOT");
+
+    _glExtensions = (char *)glGetString(GL_EXTENSIONS);
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     glGetIntegerv(GL_MAX_SAMPLES_APPLE, &_maxSamplesAllowed);
 	_valueDict["gl.max_samples_allowed"] = Value((int)_maxSamplesAllowed);
 #endif
 
-    _supportsETC1 = checkForGLExtension("GL_OES_compressed_ETC1_RGB8_texture");
-    _valueDict["gl.supports_ETC1"] = Value(_supportsETC1);
+    CharReaderBase r(_glExtensions, strlen(_glExtensions));
 
-    _supportsS3TC = checkForGLExtension("GL_EXT_texture_compression_s3tc");
-    _valueDict["gl.supports_S3TC"] = Value(_supportsS3TC);
+    r.split<CharReaderBase::Chars<' '>>([&] (CharReaderBase &b) {
+    	if (b == "GL_OES_compressed_ETC1_RGB8_texture") {
+    		_supportsETC1 = true;
+    	} else if (b == "GL_EXT_texture_compression_s3tc") {
+    		_supportsS3TC = true;
+    	} else if (b == "GL_AMD_compressed_ATC_texture") {
+    		_supportsATITC = true;
+    	} else if (b == "GL_IMG_texture_compression_pvrtc") {
+    		_supportsPVRTC = true;
+    	} else if (b == "GL_IMG_texture_format_BGRA888") {
+    		_supportsBGRA8888 = true;
+    	} else if (b == "GL_EXT_discard_framebuffer") {
+    		_supportsDiscardFramebuffer = true;
+    	} else if (b == "vertex_array_object") {
+    		_supportsShareableVAO = true;
+#ifdef GL_ES_VERSION_2_0
+    	} else if (b == "GL_OES_rgb8_rgba8") {
+    		s_supportedRenderTarget |= (toInt(Configuration::RenderTarget::RGBA8) | toInt(Configuration::RenderTarget::RGB8));
+    	} else if (b == "GL_EXT_texture_rg") {
+    		s_supportedRenderTarget |= toInt(Configuration::RenderTarget::R8);
+    	} else if (b == "GL_ARM_rgba8") {
+    		s_supportedRenderTarget |= toInt(Configuration::RenderTarget::RGBA8);
+#endif
+    	}
+    });
 
-    _supportsATITC = checkForGLExtension("GL_AMD_compressed_ATC_texture");
-    _valueDict["gl.supports_ATITC"] = Value(_supportsATITC);
-
-    _supportsPVRTC = checkForGLExtension("GL_IMG_texture_compression_pvrtc");
-	_valueDict["gl.supports_PVRTC"] = Value(_supportsPVRTC);
-
-    _supportsNPOT = true;
-	_valueDict["gl.supports_NPOT"] = Value(_supportsNPOT);
-
-    _supportsBGRA8888 = checkForGLExtension("GL_IMG_texture_format_BGRA888");
-	_valueDict["gl.supports_BGRA8888"] = Value(_supportsBGRA8888);
-
-    _supportsDiscardFramebuffer = checkForGLExtension("GL_EXT_discard_framebuffer");
-	_valueDict["gl.supports_discard_framebuffer"] = Value(_supportsDiscardFramebuffer);
-
-    _supportsShareableVAO = checkForGLExtension("vertex_array_object");
-	_valueDict["gl.supports_vertex_array_object"] = Value(_supportsShareableVAO);
+	_data.setBool(_supportsETC1, "gl.supports_ETC1");
+	_data.setBool(_supportsS3TC, "gl.supports_S3TC");
+	_data.setBool(_supportsATITC, "gl.supports_ATITC");
+	_data.setBool(_supportsPVRTC, "gl.supports_PVRTC");
+	_data.setBool(_supportsBGRA8888, "gl.supports_BGRA8888");
+	_data.setBool(_supportsDiscardFramebuffer, "gl.supports_discard_framebuffer");
+	_data.setBool(_supportsShareableVAO, "gl.supports_vertex_array_object");
 
     CHECK_GL_ERROR_DEBUG();
 }
@@ -159,18 +190,6 @@ Configuration* Configuration::getInstance()
 void Configuration::destroyInstance()
 {
     CC_SAFE_RELEASE_NULL(s_sharedConfiguration);
-}
-
-// FIXME: deprecated
-Configuration* Configuration::sharedConfiguration()
-{
-    return Configuration::getInstance();
-}
-
-// FIXME: deprecated
-void Configuration::purgeConfiguration()
-{
-    Configuration::destroyInstance();
 }
 
 
@@ -267,89 +286,17 @@ int Configuration::getMaxSupportSpotLightInShader() const
 //
 const Value& Configuration::getValue(const std::string& key, const Value& defaultValue) const
 {
-    auto iter = _valueDict.find(key);
-    if (iter != _valueDict.cend())
-        return _valueDict.at(key);
-	return defaultValue;
+	auto &ret = _data.getValue(key);
+	if (ret) {
+		return ret;
+	} else {
+		return defaultValue;
+	}
 }
 
 void Configuration::setValue(const std::string& key, const Value& value)
 {
-	_valueDict[key] = value;
-}
-
-
-//
-// load file
-//
-void Configuration::loadConfigFile(const std::string& filename)
-{
-	ValueMap dict = FileUtils::getInstance()->getValueMapFromFile(filename);
-	CCASSERT(!dict.empty(), "cannot create dictionary");
-
-	// search for metadata
-	bool validMetadata = false;
-	auto metadataIter = dict.find("metadata");
-	if (metadataIter != dict.cend() && metadataIter->second.getType() == Value::Type::MAP)
-    {
-
-		const auto& metadata = metadataIter->second.asValueMap();
-        auto formatIter = metadata.find("format");
-
-		if (formatIter != metadata.cend())
-        {
-			int format = formatIter->second.asInt();
-
-			// Support format: 1
-			if (format == 1)
-            {
-				validMetadata = true;
-			}
-		}
-	}
-
-	if (! validMetadata)
-    {
-		CCLOG("Invalid config format for file: %s", filename.c_str());
-		return;
-	}
-
-	auto dataIter = dict.find("data");
-	if (dataIter == dict.cend() || dataIter->second.getType() != Value::Type::MAP)
-    {
-		CCLOG("Expected 'data' dict, but not found. Config file: %s", filename.c_str());
-		return;
-	}
-
-	// Add all keys in the existing dictionary
-
-	const auto& dataMap = dataIter->second.asValueMap();
-    for (auto dataMapIter = dataMap.cbegin(); dataMapIter != dataMap.cend(); ++dataMapIter)
-    {
-        if (_valueDict.find(dataMapIter->first) == _valueDict.cend())
-            _valueDict[dataMapIter->first] = dataMapIter->second;
-        else
-            CCLOG("Key already present. Ignoring '%s'",dataMapIter->first.c_str());
-    }
-
-    //light info
-    std::string name = "cocos2d.x.3d.max_dir_light_in_shader";
-	if (_valueDict.find(name) != _valueDict.end())
-        _maxDirLightInShader = _valueDict[name].asInt();
-    else
-        _valueDict[name] = Value(_maxDirLightInShader);
-
-    name = "cocos2d.x.3d.max_point_light_in_shader";
-	if (_valueDict.find(name) != _valueDict.end())
-        _maxPointLightInShader = _valueDict[name].asInt();
-    else
-        _valueDict[name] = Value(_maxPointLightInShader);
-
-    name = "cocos2d.x.3d.max_spot_light_in_shader";
-	if (_valueDict.find(name) != _valueDict.end())
-        _maxSpotLightInShader = _valueDict[name].asInt();
-    else
-        _valueDict[name] = Value(_maxSpotLightInShader);
+	_data.setValue(value, key);
 }
 
 NS_CC_END

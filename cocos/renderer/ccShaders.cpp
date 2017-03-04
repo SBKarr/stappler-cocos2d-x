@@ -77,25 +77,5 @@ NS_CC_BEGIN
 #include "ccShader_PositionColorLengthTexture.vert"
 
 #include "ccShader_UI_Gray.frag"
-//
-#include "ccShader_Label.vert"
-#include "ccShader_Label_df.frag"
-#include "ccShader_Label_df_glow.frag"
-#include "ccShader_Label_normal.frag"
-#include "ccShader_Label_outline.frag"
-
-//
-#include "ccShader_3D_PositionTex.vert"
-#include "ccShader_3D_Color.frag"
-#include "ccShader_3D_ColorTex.frag"
-#include "ccShader_3D_PositionNormalTex.vert"
-#include "ccShader_3D_ColorNormal.frag"
-#include "ccShader_3D_ColorNormalTex.frag"
-#include "ccShader_3D_Particle.vert"
-#include "ccShader_3D_Particle.frag"
-#include "ccShader_3D_Skybox.vert"
-#include "ccShader_3D_Skybox.frag"
-#include "ccShader_3D_Terrain.vert"
-#include "ccShader_3D_Terrain.frag"
 
 NS_CC_END

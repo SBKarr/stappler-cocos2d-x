@@ -31,12 +31,9 @@ THE SOFTWARE.
 // standard includes
 #include <string>
 
-#include "2d/CCSpriteFrameCache.h"
 #include "platform/CCFileUtils.h"
 
 #include "2d/CCActionManager.h"
-#include "2d/CCAnimationCache.h"
-#include "2d/CCTransition.h"
 #include "renderer/CCGLProgramCache.h"
 #include "renderer/CCGLProgramStateCache.h"
 #include "renderer/CCTextureCache.h"
@@ -51,7 +48,6 @@ THE SOFTWARE.
 #include "base/CCConsole.h"
 #include "base/CCAutoreleasePool.h"
 #include "base/CCConfiguration.h"
-#include "base/CCAsyncTaskPool.h"
 #include "platform/CCApplication.h"
 //#include "platform/CCGLViewImpl.h"
 
@@ -651,7 +647,6 @@ void Director::purgeCachedData(void)
 {
     if (s_SharedDirector->getOpenGLView())
     {
-        SpriteFrameCache::getInstance()->removeUnusedSpriteFrames();
         _textureCache->removeUnusedTextures();
 
         // Note: some tests such as ActionsTest are leaking refcounted textures
@@ -953,12 +948,9 @@ void Director::reset()
 #elif _MSC_VER >= 1400 //vs 2005 or higher
 #pragma warning (pop)
 #endif
-    AnimationCache::destroyInstance();
-    SpriteFrameCache::destroyInstance();
     GLProgramCache::destroyInstance();
     GLProgramStateCache::destroyInstance();
     FileUtils::destroyInstance();
-    AsyncTaskPool::destoryInstance();
 
     GL::invalidateStateCache();
 
@@ -1006,25 +998,19 @@ void Director::restartDirector()
 
 void Director::setNextScene()
 {
-    bool runningIsTransition = dynamic_cast<TransitionScene*>(_runningScene) != nullptr;
-    bool newIsTransition = dynamic_cast<TransitionScene*>(_nextScene) != nullptr;
-
     // If it is not a transition, call onExit/cleanup
-     if (! newIsTransition)
-     {
-         if (_runningScene)
-         {
-             _runningScene->onExitTransitionDidStart();
-             _runningScene->onExit();
-         }
+	 if (_runningScene)
+	 {
+		 _runningScene->onExitTransitionDidStart();
+		 _runningScene->onExit();
+	 }
 
-         // issue #709. the root node (scene) should receive the cleanup message too
-         // otherwise it might be leaked.
-         if (_sendCleanupToScene && _runningScene)
-         {
-             _runningScene->cleanup();
-         }
-     }
+	 // issue #709. the root node (scene) should receive the cleanup message too
+	 // otherwise it might be leaked.
+	 if (_sendCleanupToScene && _runningScene)
+	 {
+		 _runningScene->cleanup();
+	 }
 
     if (_runningScene)
     {
@@ -1034,7 +1020,7 @@ void Director::setNextScene()
     _nextScene->retain();
     _nextScene = nullptr;
 
-    if ((! runningIsTransition) && _runningScene)
+    if (_runningScene)
     {
         _runningScene->onEnter();
         _runningScene->onEnterTransitionDidFinish();

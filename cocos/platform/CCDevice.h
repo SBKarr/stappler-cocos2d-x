@@ -32,8 +32,6 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-struct FontDefinition;
-
 /**
  * @addtogroup support
  * @{
@@ -82,11 +80,6 @@ public:
      * @param keepScreenOn One flag indicating that the screen should remain on.
      */
     static void setKeepScreenOn(bool keepScreenOn);
-
-    /**
-     * Gets texture data for text.
-     */
-    static Data getTextureDataForText(const char * text, const FontDefinition& textDefinition, TextAlign align, int &width, int &height, bool& hasPremultipliedAlpha);
 
 private:
     CC_DISALLOW_IMPLICIT_CONSTRUCTORS(Device);

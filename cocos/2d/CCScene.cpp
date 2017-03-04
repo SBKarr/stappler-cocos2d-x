@@ -31,7 +31,6 @@ THE SOFTWARE.
 #include "base/CCEventDispatcher.h"
 #include "base/CCEventListenerCustom.h"
 #include "renderer/CCRenderer.h"
-#include "base/ccUTF8.h"
 
 #if CC_USE_PHYSICS
 #include "physics/CCPhysicsWorld.h"
@@ -119,11 +118,6 @@ Scene* Scene::createWithSize(const Size& size)
         CC_SAFE_DELETE(ret);
         return nullptr;
     }
-}
-
-std::string Scene::getDescription() const
-{
-    return StringUtils::format("<Scene | tag = %d>", _tag);
 }
 
 void Scene::onProjectionChanged(EventCustom* event)

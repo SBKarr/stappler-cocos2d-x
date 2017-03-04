@@ -31,7 +31,6 @@ THE SOFTWARE.
 
 #include "platform/CCPlatformMacros.h"
 #include "base/ccTypes.h"
-#include "base/CCValue.h"
 #include "base/CCData.h"
 
 NS_CC_BEGIN
@@ -167,49 +166,14 @@ public:
      @since v2.1
      */
     virtual std::string fullPathForFilename(const std::string &filename) const;
-    
-    /**
-     * Loads the filenameLookup dictionary from the contents of a filename.
-     * 
-     * @note The plist file name should follow the format below:
-     * 
-     * @code
-     * <?xml version="1.0" encoding="UTF-8"?>
-     * <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-     * <plist version="1.0">
-     * <dict>
-     *     <key>filenames</key>
-     *     <dict>
-     *         <key>sounds/click.wav</key>
-     *         <string>sounds/click.caf</string>
-     *         <key>sounds/endgame.wav</key>
-     *         <string>sounds/endgame.caf</string>
-     *         <key>sounds/gem-0.wav</key>
-     *         <string>sounds/gem-0.caf</string>
-     *     </dict>
-     *     <key>metadata</key>
-     *     <dict>
-     *         <key>version</key>
-     *         <integer>1</integer>
-     *     </dict>
-     * </dict>
-     * </plist>
-     * @endcode
-     * @param filename The plist file name.
-     *
-     @since v2.1
-     * @js loadFilenameLookup
-     * @lua loadFilenameLookup
-     */
-    virtual void loadFilenameLookupDictionaryFromFile(const std::string &filename);
-    
+
     /** 
      *  Sets the filenameLookup dictionary.
      *
      *  @param pFilenameLookupDict The dictionary for replacing filename.
      *  @since v2.1
      */
-    virtual void setFilenameLookupDictionary(const ValueMap& filenameLookupDict);
+    virtual void setFilenameLookupDictionary(const std::map<std::string, std::string> & filenameLookupDict);
     
     /**
      *  Gets full path from a file name and the path of the relative file.
@@ -314,23 +278,6 @@ public:
     virtual bool isPopupNotify() const;
 
     /**
-     *  Converts the contents of a file to a ValueMap.
-     *  @param filename The filename of the file to gets content.
-     *  @return ValueMap of the file contents.
-     *  @note This method is used internally.
-     */
-    virtual ValueMap getValueMapFromFile(const std::string& filename);
-
-    // Converts the contents of a file to a ValueMap.
-    // This method is used internally.
-    virtual ValueMap getValueMapFromData(const char* filedata, int filesize);
-    
-
-    // Write a ValueMap to a plist file.
-    // This method is used internally.
-    virtual bool writeToFile(ValueMap& dict, const std::string& fullPath);
-    
-    /**
     * Windows fopen can't support UTF-8 filename
     * Need convert all parameters fopen and other 3rd-party libs
     *
@@ -338,11 +285,7 @@ public:
     * @return std::string ansi filename in current locale
     */
     virtual std::string getSuitableFOpen(const std::string& filenameUtf8) const;
-    
-    // Converts the contents of a file to a ValueVector.
-    // This method is used internally.
-    virtual ValueVector getValueVectorFromFile(const std::string& filename);
-    
+
     /**
      *  Checks whether a file exists.
      *
@@ -495,7 +438,7 @@ protected:
      *
      *  @since v2.1
      */
-    ValueMap _filenameLookupDict;
+    std::map<std::string, std::string> _filenameLookupDict;
     
     /** 
      *  The vector contains resolution folders.

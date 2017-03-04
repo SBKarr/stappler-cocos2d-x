@@ -213,12 +213,6 @@ public:
     /** Specify if the array buffer of the VBO needs to be updated. */
     inline void setDirty(bool bDirty) { _dirty = bDirty; }
 
-    /**Get quads total amount.
-     * @js NA
-     * @lua NA
-     */
-    virtual std::string getDescription() const;
-
     /** Gets the quantity of quads that are going to be drawn. */
     ssize_t getTotalQuads() const;
     

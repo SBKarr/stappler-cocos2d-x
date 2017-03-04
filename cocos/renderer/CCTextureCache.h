@@ -67,16 +67,10 @@ public:
     /** Returns the shared instance of the cache. */
     CC_DEPRECATED_ATTRIBUTE static TextureCache * getInstance();
 
-    /** @deprecated Use getInstance() instead. */
-    CC_DEPRECATED_ATTRIBUTE static TextureCache * sharedTextureCache();
-
     /** Purges the cache. It releases the retained instance.
      @since v0.99.0
      */
     CC_DEPRECATED_ATTRIBUTE static void destroyInstance();
-
-    /** @deprecated Use destroyInstance() instead. */
-    CC_DEPRECATED_ATTRIBUTE static void purgeSharedTextureCache();
 
     /** Reload all textures.
     Should not call it, called by frame work.
@@ -94,11 +88,6 @@ public:
      * @lua NA
      */
     virtual ~TextureCache();
-    /**
-     * @js NA
-     * @lua NA
-     */
-    virtual std::string getDescription() const;
 
 //    Dictionary* snapshotTextures();
 
@@ -142,14 +131,12 @@ public:
     * If "key" is nil, then a new texture will be created each time.
     */
     Texture2D* addImage(Image *image, const std::string &key);
-    CC_DEPRECATED_ATTRIBUTE Texture2D* addUIImage(Image *image, const std::string& key) { return addImage(image,key); }
 
     /** Returns an already created texture. Returns nil if the texture doesn't exist.
     @param key It's the related/absolute path of the file image.
     @since v0.99.5
     */
     Texture2D* getTextureForKey(const std::string& key) const;
-    CC_DEPRECATED_ATTRIBUTE Texture2D* textureForKey(const std::string& key) const { return getTextureForKey(key); }
 
     /** Reload texture from the image file.
     * If the file image hasn't loaded before, load it.
@@ -242,7 +229,6 @@ class VolatileTexture
         kInvalid = 0,
         kImageFile,
         kImageData,
-        kString,
         kImage,
     }ccCachedImageType;
 
@@ -272,14 +258,12 @@ protected:
     bool                      _hasMipmaps;
     Texture2D::TexParams      _texParams;
     std::string               _text;
-    FontDefinition            _fontDefinition;
 };
 
 class CC_DLL VolatileTextureMgr
 {
 public:
     static void addImageTexture(Texture2D *tt, const std::string& imageFileName);
-    static void addStringTexture(Texture2D *tt, const char* text, const FontDefinition& fontDefinition);
     static void addDataTexture(Texture2D *tt, void* data, int dataLen, Texture2D::PixelFormat pixelFormat, const Size& contentSize);
     static void addImage(Texture2D *tt, Image *image);
 

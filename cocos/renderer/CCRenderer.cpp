@@ -26,17 +26,11 @@
 
 #include <algorithm>
 
-#include "renderer/CCTrianglesCommand.h"
 #include "renderer/CCQuadCommand.h"
 #include "renderer/CCBatchCommand.h"
 #include "renderer/CCCustomCommand.h"
 #include "renderer/CCGroupCommand.h"
-#include "renderer/CCPrimitiveCommand.h"
-#include "renderer/CCMeshCommand.h"
 #include "renderer/CCGLProgramCache.h"
-#include "renderer/CCMaterial.h"
-#include "renderer/CCTechnique.h"
-#include "renderer/CCPass.h"
 #include "renderer/CCRenderState.h"
 #include "renderer/ccGLStateCache.h"
 
@@ -288,7 +282,6 @@ bool Renderer::checkVisibility(const Mat4 &transform, const Size &size)
 //
 RendererView::RendererView()
 :_lastMaterialID(0)
-,_lastBatchedMeshCommand(nullptr)
 ,_filledVertex(0)
 ,_filledIndex(0)
 ,_numberQuads(0)
@@ -298,8 +291,6 @@ RendererView::RendererView()
 ,_cacheTextureListener(nullptr)
 #endif
 {
-    _batchedCommands.reserve(BATCH_QUADCOMMAND_RESEVER_SIZE);
-
     // default clear color
     _clearColor = Color4F::BLACK;
 }
@@ -461,41 +452,8 @@ void RendererView::processRenderCommand(RenderCommand* command)
 	}
 
     auto commandType = command->getType();
-    if( RenderCommand::Type::TRIANGLES_COMMAND == commandType)
+    if ( RenderCommand::Type::QUAD_COMMAND == commandType )
     {
-        //Draw if we have batched other commands which are not triangle command
-        flush3D();
-        flushQuads();
-
-        //Process triangle command
-        auto cmd = static_cast<TrianglesCommand*>(command);
-
-        //Draw batched Triangles if necessary
-        if(cmd->isSkipBatching() || _filledVertex + cmd->getVertexCount() > VBO_SIZE || _filledIndex + cmd->getIndexCount() > INDEX_VBO_SIZE)
-        {
-            CCASSERT(cmd->getVertexCount()>= 0 && cmd->getVertexCount() < VBO_SIZE, "VBO for vertex is not big enough, please break the data down or use customized render command");
-            CCASSERT(cmd->getIndexCount()>= 0 && cmd->getIndexCount() < INDEX_VBO_SIZE, "VBO for index is not big enough, please break the data down or use customized render command");
-            //Draw batched Triangles if VBO is full
-            drawBatchedTriangles();
-        }
-
-        //Batch Triangles
-        _batchedCommands.push_back(cmd);
-
-        fillVerticesAndIndices(cmd);
-
-        if(cmd->isSkipBatching())
-        {
-            drawBatchedTriangles();
-        }
-
-    }
-    else if ( RenderCommand::Type::QUAD_COMMAND == commandType )
-    {
-        //Draw if we have batched other commands which are not quad command
-        flush3D();
-        flushTriangles();
-
         //Process quad command
         auto cmd = static_cast<QuadCommand*>(command);
 
@@ -517,31 +475,6 @@ void RendererView::processRenderCommand(RenderCommand* command)
             drawBatchedQuads();
         }
     }
-    else if (RenderCommand::Type::MESH_COMMAND == commandType)
-    {
-        flush2D();
-        auto cmd = static_cast<MeshCommand*>(command);
-
-        if (cmd->isSkipBatching() || _lastBatchedMeshCommand == nullptr || _lastBatchedMeshCommand->getMaterialID() != cmd->getMaterialID())
-        {
-            flush3D();
-
-            if(cmd->isSkipBatching())
-            {
-                cmd->execute();
-            }
-            else
-            {
-                cmd->preBatchDraw();
-                cmd->batchDraw();
-                _lastBatchedMeshCommand = cmd;
-            }
-        }
-        else
-        {
-            cmd->batchDraw();
-        }
-    }
     else if(RenderCommand::Type::GROUP_COMMAND == commandType)
     {
         flush();
@@ -558,12 +491,6 @@ void RendererView::processRenderCommand(RenderCommand* command)
     {
         flush();
         auto cmd = static_cast<BatchCommand*>(command);
-        cmd->execute();
-    }
-    else if(RenderCommand::Type::PRIMITIVE_COMMAND == commandType)
-    {
-        flush();
-        auto cmd = static_cast<PrimitiveCommand*>(command);
         cmd->execute();
     }
     else
@@ -728,13 +655,11 @@ void RendererView::clean()
     }
 
     // Clear batch commands
-    _batchedCommands.clear();
     _batchQuadCommands.clear();
     _filledVertex = 0;
     _filledIndex = 0;
     _numberQuads = 0;
     _lastMaterialID = 0;
-    _lastBatchedMeshCommand = nullptr;
 }
 
 void RendererView::clear()
@@ -771,29 +696,6 @@ void RendererView::setDepthTest(bool enable)
     CHECK_GL_ERROR_DEBUG();
 }
 
-void RendererView::fillVerticesAndIndices(const TrianglesCommand* cmd)
-{
-    memcpy(_verts + _filledVertex, cmd->getVertices(), sizeof(V3F_C4B_T2F) * cmd->getVertexCount());
-    const Mat4& modelView = cmd->getModelView();
-
-    for(ssize_t i=0; i< cmd->getVertexCount(); ++i)
-    {
-        V3F_C4B_T2F *q = &_verts[i + _filledVertex];
-        Vec3 *vec1 = (Vec3*)&q->vertices;
-        modelView.transformPoint(vec1);
-    }
-
-    const unsigned short* indices = cmd->getIndices();
-    //fill index
-    for(ssize_t i=0; i< cmd->getIndexCount(); ++i)
-    {
-        _indices[_filledIndex + i] = _filledVertex + indices[i];
-    }
-
-    _filledVertex += cmd->getVertexCount();
-    _filledIndex += cmd->getIndexCount();
-}
-
 void RendererView::fillQuads(const QuadCommand *cmd)
 {
     const Mat4& modelView = cmd->getModelView();
@@ -805,114 +707,6 @@ void RendererView::fillQuads(const QuadCommand *cmd)
     }
 
     _numberQuads += cmd->getQuadCount();
-}
-
-void RendererView::drawBatchedTriangles()
-{
-    //TODO: we can improve the draw performance by insert material switching command before hand.
-
-    int indexToDraw = 0;
-    int startIndex = 0;
-
-    //Upload buffer to VBO
-    if(_filledVertex <= 0 || _filledIndex <= 0 || _batchedCommands.empty())
-    {
-        return;
-    }
-
-    if (Configuration::getInstance()->supportsShareableVAO())
-    {
-        //Bind VAO
-        GL::bindVAO(_buffersVAO);
-        //Set VBO data
-        glBindBuffer(GL_ARRAY_BUFFER, _buffersVBO[0]);
-
-        // option 1: subdata
-//        glBufferSubData(GL_ARRAY_BUFFER, sizeof(_quads[0])*start, sizeof(_quads[0]) * n , &_quads[start] );
-
-        // option 2: data
-//        glBufferData(GL_ARRAY_BUFFER, sizeof(quads_[0]) * (n-start), &quads_[start], GL_DYNAMIC_DRAW);
-
-        // option 3: orphaning + glMapBuffer
-        glBufferData(GL_ARRAY_BUFFER, sizeof(_verts[0]) * _filledVertex, nullptr, GL_DYNAMIC_DRAW);
-        void *buf = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        memcpy(buf, _verts, sizeof(_verts[0])* _filledVertex);
-        glUnmapBuffer(GL_ARRAY_BUFFER);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffersVBO[1]);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_indices[0]) * _filledIndex, _indices, GL_STATIC_DRAW);
-    }
-    else
-    {
-#define kQuadSize sizeof(_verts[0])
-        glBindBuffer(GL_ARRAY_BUFFER, _buffersVBO[0]);
-
-        glBufferData(GL_ARRAY_BUFFER, sizeof(_verts[0]) * _filledVertex , _verts, GL_DYNAMIC_DRAW);
-
-        GL::enableVertexAttribs(GL::VERTEX_ATTRIB_FLAG_POS_COLOR_TEX);
-
-        // vertices
-        glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 3, GL_FLOAT, GL_FALSE, kQuadSize, (GLvoid*) offsetof(V3F_C4B_T2F, vertices));
-
-        // colors
-        glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, kQuadSize, (GLvoid*) offsetof(V3F_C4B_T2F, colors));
-
-        // tex coords
-        glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_TEX_COORD, 2, GL_FLOAT, GL_FALSE, kQuadSize, (GLvoid*) offsetof(V3F_C4B_T2F, texCoords));
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffersVBO[1]);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_indices[0]) * _filledIndex, _indices, GL_STATIC_DRAW);
-    }
-
-    //Start drawing verties in batch
-    for(const auto& cmd : _batchedCommands)
-    {
-        auto newMaterialID = cmd->getMaterialID();
-        if(_lastMaterialID != newMaterialID || newMaterialID == MATERIAL_ID_DO_NOT_BATCH)
-        {
-            //Draw quads
-            if(indexToDraw > 0)
-            {
-                glDrawElements(GL_TRIANGLES, (GLsizei) indexToDraw, GL_UNSIGNED_SHORT, (GLvoid*) (startIndex*sizeof(_indices[0])) );
-                _drawnBatches++;
-                _drawnVertices += indexToDraw;
-
-                startIndex += indexToDraw;
-                indexToDraw = 0;
-            }
-
-            //Use new material
-            cmd->useMaterial();
-            _lastMaterialID = newMaterialID;
-        }
-
-        indexToDraw += cmd->getIndexCount();
-    }
-
-    //Draw any remaining triangles
-    if(indexToDraw > 0)
-    {
-        glDrawElements(GL_TRIANGLES, (GLsizei) indexToDraw, GL_UNSIGNED_SHORT, (GLvoid*) (startIndex*sizeof(_indices[0])) );
-        _drawnBatches++;
-        _drawnVertices += indexToDraw;
-    }
-
-    if (Configuration::getInstance()->supportsShareableVAO())
-    {
-        //Unbind VAO
-        GL::bindVAO(0);
-    }
-    else
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    }
-
-    _batchedCommands.clear();
-    _filledVertex = 0;
-    _filledIndex = 0;
 }
 
 void RendererView::drawBatchedQuads()
@@ -1032,22 +826,11 @@ void RendererView::drawBatchedQuads()
 void RendererView::flush()
 {
     flush2D();
-    flush3D();
 }
 
 void RendererView::flush2D()
 {
     flushQuads();
-    flushTriangles();
-}
-
-void RendererView::flush3D()
-{
-    if (_lastBatchedMeshCommand)
-    {
-        _lastBatchedMeshCommand->postBatchDraw();
-        _lastBatchedMeshCommand = nullptr;
-    }
 }
 
 void RendererView::flushQuads()
@@ -1055,15 +838,6 @@ void RendererView::flushQuads()
     if(_numberQuads > 0)
     {
         drawBatchedQuads();
-        _lastMaterialID = 0;
-    }
-}
-
-void RendererView::flushTriangles()
-{
-    if(_filledIndex > 0)
-    {
-        drawBatchedTriangles();
         _lastMaterialID = 0;
     }
 }

@@ -45,18 +45,15 @@ THE SOFTWARE.
 #include "base/CCAutoreleasePool.h"
 #include "base/CCNS.h"
 #include "base/CCData.h"
-#include "base/CCValue.h"
 #include "base/ccConfig.h"
 #include "base/ccMacros.h"
 #include "base/ccTypes.h"
 #include "base/CCConfiguration.h"
 #include "base/CCDirector.h"
 #include "base/CCScheduler.h"
-#include "base/base64.h"
 #include "base/ZipUtils.h"
 #include "base/CCProfiling.h"
 #include "base/CCConsole.h"
-#include "base/ccUTF8.h"
 #include "base/CCIMEDelegate.h"
 #include "base/CCIMEDispatcher.h"
 #include "base/ccUtils.h"
@@ -90,36 +87,15 @@ THE SOFTWARE.
 // actions
 #include "2d/CCAction.h"
 #include "2d/CCActionInterval.h"
-#include "2d/CCActionCamera.h"
 #include "2d/CCActionManager.h"
 #include "2d/CCActionEase.h"
-#include "2d/CCActionPageTurn3D.h"
-#include "2d/CCActionGrid.h"
-#include "2d/CCActionProgressTimer.h"
-#include "2d/CCActionGrid3D.h"
-#include "2d/CCActionTiledGrid.h"
 #include "2d/CCActionInstant.h"
-#include "2d/CCActionTween.h"
-#include "2d/CCActionCatmullRom.h"
 #include "2d/CCTweenFunction.h"
 
 // 2d nodes
 #include "2d/CCNode.h"
-#include "2d/CCProtectedNode.h"
-#include "2d/CCAtlasNode.h"
-#include "2d/CCLayer.h"
 #include "2d/CCScene.h"
-#include "2d/CCTransition.h"
-#include "2d/CCTransitionPageTurn.h"
-#include "2d/CCTransitionProgress.h"
-#include "2d/CCMotionStreak.h"
-#include "2d/CCProgressTimer.h"
 #include "2d/CCRenderTexture.h"
-#include "2d/CCNodeGrid.h"
-#include "2d/CCParticleBatchNode.h"
-#include "2d/CCParticleSystem.h"
-#include "2d/CCParticleExamples.h"
-#include "2d/CCParticleSystemQuad.h"
 
 // 2d utils
 #include "2d/CCGrabber.h"
@@ -145,11 +121,6 @@ THE SOFTWARE.
 #include "renderer/ccShaders.h"
 #include "renderer/CCTexture2D.h"
 #include "renderer/CCTextureCache.h"
-#include "renderer/CCVertexIndexBuffer.h"
-#include "renderer/CCVertexIndexData.h"
-#include "renderer/CCPrimitive.h"
-#include "renderer/CCPrimitiveCommand.h"
-#include "renderer/CCTrianglesCommand.h"
 
 // platform
 #include "platform/CCDevice.h"
@@ -218,16 +189,9 @@ THE SOFTWARE.
 	#include "platform/winrt/CCPrecompiledShaders.h"
 #endif // CC_TARGET_PLATFORM == CC_PLATFORM_WP8
 
-// script_support
-#include "base/CCScriptSupport.h"
 
 // sprite_nodes
-#include "2d/CCAnimation.h"
-#include "2d/CCAnimationCache.h"
 #include "2d/CCSprite.h"
-#include "2d/CCSpriteBatchNode.h"
-#include "2d/CCSpriteFrame.h"
-#include "2d/CCSpriteFrameCache.h"
 
 // textures
 #include "renderer/CCTextureAtlas.h"

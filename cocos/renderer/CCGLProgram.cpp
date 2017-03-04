@@ -36,7 +36,6 @@ THE SOFTWARE.
 #include "base/uthash.h"
 #include "renderer/ccGLStateCache.h"
 #include "platform/CCFileUtils.h"
-#include "base/ccUTF8.h"
 
 // helper functions
 
@@ -416,14 +415,6 @@ VertexAttrib* GLProgram::getVertexAttrib(const std::string &name)
     if( itr != _vertexAttribs.end())
         return &itr->second;
     return nullptr;
-}
-
-std::string GLProgram::getDescription() const
-{
-    return StringUtils::format("<GLProgram = "
-                                      CC_FORMAT_PRINTF_SIZE_T
-                                      " | Program = %i, VertexShader = %i, FragmentShader = %i>",
-                                      (size_t)this, _program, _vertShader, _fragShader);
 }
 
 bool GLProgram::compileShader(GLuint * shader, GLenum type, const GLchar* source)

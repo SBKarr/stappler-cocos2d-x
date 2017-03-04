@@ -31,7 +31,6 @@ THE SOFTWARE.
 #include <vector>
 
 #include "2d/CCAction.h"
-#include "2d/CCAnimation.h"
 #include "base/CCProtocols.h"
 #include "base/CCVector.h"
 
@@ -1414,62 +1413,6 @@ private:
 };
 
 class Texture2D;
-/** @class Animate
- * @brief Animates a sprite given the name of an Animation.
- */
-class CC_DLL Animate : public ActionInterval
-{
-public:
-    /** Creates the action with an Animation and will restore the original frame when the animation is over.
-     *
-     * @param animation A certain animation.
-     * @return An autoreleased Animate object.
-     */
-    static Animate* create(Animation *animation);
-
-    /** Sets the Animation object to be animated 
-     * 
-     * @param animation certain animation.
-     */
-    void setAnimation( Animation* animation );
-    /** returns the Animation object that is being animated 
-     *
-     * @return Gets the animation object that is being animated.
-     */
-    Animation* getAnimation() { return _animation; }
-    const Animation* getAnimation() const { return _animation; }
-
-    //
-    // Overrides
-    //
-    virtual Animate* clone() const override;
-    virtual Animate* reverse() const override;
-    virtual void startWithTarget(Node *target) override;
-    virtual void stop(void) override;
-    /**
-     * @param t In seconds.
-     */
-    virtual void update(float t) override;
-    
-CC_CONSTRUCTOR_ACCESS:
-    Animate();
-    virtual ~Animate();
-
-    /** initializes the action with an Animation and will restore the original frame when the animation is over */
-    bool initWithAnimation(Animation *animation);
-
-protected:
-    std::vector<float>* _splitTimes;
-    int             _nextFrame;
-    SpriteFrame*    _origFrame;
-    unsigned int    _executedLoops;
-    Animation*      _animation;
-
-    EventCustom*    _frameDisplayedEvent;
-    AnimationFrame::DisplayedEventInfo _frameDisplayedEventInfo;
-private:
-    CC_DISALLOW_COPY_AND_ASSIGN(Animate);
-};
 
 /** @class TargetedAction
  * @brief Overrides the target of an action so that it always runs on the target

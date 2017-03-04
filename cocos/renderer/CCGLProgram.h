@@ -477,8 +477,6 @@ protected:
     @oaram bytes Data length in bytes to update.
     */
     bool updateUniformLocation(GLint location, const GLvoid* data, unsigned int bytes);
-    /**Get a general description of the shader.*/
-    virtual std::string getDescription() const;
 
     /**Bind the predefined vertex attributes to their specific slot.*/
     void bindPredefinedVertexAttribs();

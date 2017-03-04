@@ -29,7 +29,6 @@ THE SOFTWARE.
 #include "2d/CCActionInterval.h"
 #include "2d/CCNode.h"
 #include "base/CCDirector.h"
-#include "base/ccUTF8.h"
 
 NS_CC_BEGIN
 //
@@ -46,11 +45,6 @@ Action::Action()
 Action::~Action()
 {
     CCLOGINFO("deallocing Action: %p - tag: %i", this, _tag);
-}
-
-std::string Action::description() const
-{
-    return StringUtils::format("<Action | Tag = %d", _tag);
 }
 
 void Action::startWithTarget(Node *aTarget)

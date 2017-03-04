@@ -44,10 +44,8 @@ THE SOFTWARE.
 #include "2d/CCComponentContainer.h"
 #include "renderer/CCGLProgram.h"
 #include "renderer/CCGLProgramState.h"
-#include "renderer/CCMaterial.h"
 #include "math/TransformUtils.h"
-
-#include "base/ccUTF8.h"
+#include "base/CCTouch.h"
 
 
 #if CC_NODE_RENDER_SUBPIXEL
@@ -215,11 +213,6 @@ void Node::cleanup()
     // timers
     for( const auto &child: _children)
         child->cleanup();
-}
-
-std::string Node::getDescription() const
-{
-    return StringUtils::format("<Node | Tag = %d", _tag);
 }
 
 // MARK: getters / setters

@@ -65,7 +65,6 @@
 #include "2d/CCScene.h"
 #include "platform/CCFileUtils.h"
 #include "renderer/CCTextureCache.h"
-#include "base/base64.h"
 #include "base/ccUtils.h"
 
 NS_CC_BEGIN
@@ -135,29 +134,6 @@ static void sendPrompt(int fd)
 {
     const char prompt[] = "> ";
     send(fd, prompt, strlen(prompt),0);
-}
-
-static int printSceneGraph(int fd, Node* node, int level)
-{
-    int total = 1;
-    for(int i=0; i<level; ++i)
-        send(fd, "-", 1,0);
-
-    mydprintf(fd, " %s\n", node->getDescription().c_str());
-
-    for(const auto& child: node->getChildren())
-        total += printSceneGraph(fd, child, level+1);
-
-    return total;
-}
-
-static void printSceneGraphBoot(int fd)
-{
-    send(fd,"\n",1,0);
-    auto scene = Director::getInstance()->getRunningScene();
-    int total = printSceneGraph(fd, scene, 0);
-    mydprintf(fd, "Total Nodes: %d\n", total);
-    sendPrompt(fd);
 }
 
 static void printFileUtils(int fd)
@@ -306,11 +282,9 @@ Console::Console()
         { "help", "Print this message", std::bind(&Console::commandHelp, this, std::placeholders::_1, std::placeholders::_2) },
         { "projection", "Change or print the current projection. Args: [2d | 3d]", std::bind(&Console::commandProjection, this, std::placeholders::_1, std::placeholders::_2) },
         { "resolution", "Change or print the window resolution. Args: [width height resolution_policy | ]", std::bind(&Console::commandResolution, this, std::placeholders::_1, std::placeholders::_2) },
-        { "scenegraph", "Print the scene graph", std::bind(&Console::commandSceneGraph, this, std::placeholders::_1, std::placeholders::_2) },
         { "texture", "Flush or print the TextureCache info. Args: [flush | ] ", std::bind(&Console::commandTextures, this, std::placeholders::_1, std::placeholders::_2) },
         { "director", "director commands, type -h or [director help] to list supported directives", std::bind(&Console::commandDirector, this, std::placeholders::_1, std::placeholders::_2) },
         { "touch", "simulate touch event via console, type -h or [touch help] to list supported directives", std::bind(&Console::commandTouch, this, std::placeholders::_1, std::placeholders::_2) },
-        { "upload", "upload file. Args: [filename base64_encoded_data]", std::bind(&Console::commandUpload, this, std::placeholders::_1) },
         { "version", "print version string ", [](int fd, const std::string& args) {
             mydprintf(fd, "%s\n", cocos2dVersion());
         } },
@@ -476,12 +450,6 @@ void Console::commandExit(int fd, const std::string &args)
 #else
         close(fd);
 #endif
-}
-
-void Console::commandSceneGraph(int fd, const std::string &args)
-{
-    Scheduler *sched = Director::getInstance()->getScheduler();
-    sched->performFunctionInCocosThread( std::bind(&printSceneGraphBoot, fd) );
 }
 
 void Console::commandFileUtils(int fd, const std::string &args)
@@ -818,84 +786,6 @@ void Console::commandAllocator(int fd, const std::string& args)
 #endif
 }
 
-static char invalid_filename_char[] = {':', '/', '\\', '?', '%', '*', '<', '>', '"', '|', '\r', '\n', '\t'};
-
-void Console::commandUpload(int fd)
-{
-    ssize_t n, rc;
-    char buf[512], c;
-    char *ptr = buf;
-    //read file name
-    for( n = 0; n < (ssize_t)sizeof(buf) - 1; n++ )
-    {
-        if( (rc = recv(fd, &c, 1, 0)) ==1 )
-        {
-            for(char x : invalid_filename_char)
-            {
-                if(c == x)
-                {
-                    const char err[] = "upload: invalid file name!\n";
-                    send(fd, err, sizeof(err),0);
-                    return;
-                }
-            }
-            if(c == ' ')
-            {
-                break;
-            }
-            *ptr++ = c;
-        }
-        else if( rc == 0 )
-        {
-            break;
-        }
-        else if( errno == EINTR )
-        {
-            continue;
-        }
-        else
-        {
-            break;
-        }
-    }
-    *ptr = 0;
-
-    static std::string writablePath = FileUtils::getInstance()->getWritablePath();
-    std::string filepath = writablePath + std::string(buf);
-
-    FILE* fp = fopen(FileUtils::getInstance()->getSuitableFOpen(filepath).c_str(), "wb");
-    if(!fp)
-    {
-        const char err[] = "can't create file!\n";
-        send(fd, err, sizeof(err),0);
-        return;
-    }
-
-    while (true)
-    {
-        char data[4];
-        for(int i = 0; i < 4; i++)
-        {
-            data[i] = '=';
-        }
-        bool more_data;
-        readBytes(fd, data, 4, &more_data);
-        if(!more_data)
-        {
-            break;
-        }
-        unsigned char *decode;
-        unsigned char *in = (unsigned char *)data;
-        int dt = base64Decode(in, 4, &decode);
-        for(int i = 0; i < dt; i++)
-        {
-            fwrite(decode+i, 1, 1, fp);
-        }
-        free(decode);
-    }
-    fclose(fp);
-}
-
 ssize_t Console::readBytes(int fd, char* buffer, size_t maxlen, bool* more)
 {
     size_t n, rc;
@@ -927,25 +817,6 @@ bool Console::parseCommand(int fd)
     if( h < 0)
     {
         return false;
-    }
-    if(strncmp(buf, "upload", 6) == 0)
-    {
-        char c = '\0';
-        recv(fd, &c, 1, 0);
-        if(c == ' ')
-        {
-            commandUpload(fd);
-            sendPrompt(fd);
-            return true;
-        }
-        else
-        {
-            const char err[] = "upload: invalid args! Type 'help' for options\n";
-            send(fd, err, sizeof(err),0);
-            sendPrompt(fd);
-            return true;
-
-        }
     }
     if(!more_data)
     {

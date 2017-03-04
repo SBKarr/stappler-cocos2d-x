@@ -27,10 +27,8 @@ THE SOFTWARE.
 #ifndef __CCCONFIGURATION_H__
 #define __CCCONFIGURATION_H__
 
-#include <string>
-
+#include "SPData.h"
 #include "base/CCRef.h"
-#include "base/CCValue.h"
 #include "platform/CCGL.h"
 
 /**
@@ -38,6 +36,8 @@ THE SOFTWARE.
  * @{
  */
 NS_CC_BEGIN
+
+using Value = stappler::data::Value;
 
 /** @class Configuration
  * @brief Configuration contains some openGL variables
@@ -47,6 +47,15 @@ NS_CC_BEGIN
 class CC_DLL Configuration : public Ref
 {
 public:
+	enum class RenderTarget : uint32_t {
+		RGBA8 = 1 << 0, // 32-bit full-color
+		RGB8 = 1 << 1, // 24-bit RGB
+		RG8 = 1 << 2, // 16-bit two-channel
+		R8 = 1 << 3, // 8-bit single-channel
+		A8 = 1 << 4, // 8-bit alpha-channel (not supported in OpenGL ES)
+	};
+
+	static bool isRenderTargetSupported(RenderTarget target);
 
     /** Returns a shared instance of Configuration.
      *
@@ -57,12 +66,6 @@ public:
     /** Purge the shared instance of Configuration.
      */
     static void destroyInstance();
-
-    /** @deprecated Use getInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static Configuration *sharedConfiguration();
-
-    /** @deprecated Use destroyInstance() instead */
-    CC_DEPRECATED_ATTRIBUTE static void purgeConfiguration();
 
 public:
     /** Destructor
@@ -202,12 +205,6 @@ public:
      */
 	void gatherGPUInfo();
 
-	/** Loads a config file. If the keys are already present, then they are going to be replaced. Otherwise the new keys are added.
-     *
-     * @param filename Config file name.
-     */
-	void loadConfigFile(const std::string& filename);
-
 private:
     Configuration(void);
     static Configuration    *s_sharedConfiguration;
@@ -216,14 +213,14 @@ private:
 protected:
     GLint           _maxTextureSize;
     GLint           _maxModelviewStackDepth;
-    bool            _supportsPVRTC;
-    bool            _supportsETC1;
-    bool            _supportsS3TC;
-    bool            _supportsATITC;
-    bool            _supportsNPOT;
-    bool            _supportsBGRA8888;
-    bool            _supportsDiscardFramebuffer;
-    bool            _supportsShareableVAO;
+    bool            _supportsPVRTC = false;
+    bool            _supportsETC1 = false;
+    bool            _supportsS3TC = false;
+    bool            _supportsATITC = false;
+    bool            _supportsNPOT = false;
+    bool            _supportsBGRA8888 = false;
+    bool            _supportsDiscardFramebuffer = false;
+    bool            _supportsShareableVAO = false;
     GLint           _maxSamplesAllowed;
     GLint           _maxTextureUnits;
     char *          _glExtensions;
@@ -231,7 +228,7 @@ protected:
     int             _maxPointLightInShader; // max support point light in shader
     int             _maxSpotLightInShader; // max support spot light in shader
 
-	ValueMap        _valueDict;
+	Value        _data;
 };
 
 

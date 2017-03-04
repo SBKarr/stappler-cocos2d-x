@@ -37,9 +37,6 @@ THE SOFTWARE.
 
 NS_CC_BEGIN
 
-class SpriteBatchNode;
-class SpriteFrame;
-class Animation;
 class Texture2D;
 struct transformValues_;
 
@@ -128,57 +125,8 @@ public:
      */
     static Sprite* createWithTexture(Texture2D *texture, const Rect& rect, bool rotated=false);
 
-    /**
-     * Creates a sprite with an sprite frame.
-     *
-     * @param   spriteFrame    A sprite frame which involves a texture and a rect.
-     * @return  An autoreleased sprite object.
-     */
-    static Sprite* createWithSpriteFrame(SpriteFrame *spriteFrame);
-
-    /**
-     * Creates a sprite with an sprite frame name.
-     *
-     * A SpriteFrame will be fetched from the SpriteFrameCache by spriteFrameName param.
-     * If the SpriteFrame doesn't exist it will raise an exception.
-     *
-     * @param   spriteFrameName A null terminated string which indicates the sprite frame name.
-     * @return  An autoreleased sprite object.
-     */
-    static Sprite* createWithSpriteFrameName(const std::string& spriteFrameName);
-
     //  end of creators group
     /// @}
-
-
-    /// @{
-    /// @name BatchNode methods
-
-    /**
-     * Updates the quad according the rotation, position, scale values.
-     */
-    virtual void updateTransform() override;
-
-    /**
-     * Returns the batch node object if this sprite is rendered by SpriteBatchNode.
-     *
-     * @return The SpriteBatchNode object if this sprite is rendered by SpriteBatchNode,
-     *         nullptr if the sprite isn't used batch node.
-     */
-    virtual SpriteBatchNode* getBatchNode() const;
-    /**
-     * Sets the batch node to sprite.
-     * @warning This method is not recommended for game developers. Sample code for using batch node
-     * @code
-     * SpriteBatchNode *batch = SpriteBatchNode::create("Images/grossini_dance_atlas.png", 15);
-     * Sprite *sprite = Sprite::createWithTexture(batch->getTexture(), Rect(0, 0, 57, 57));
-     * batch->addChild(sprite);
-     * layer->addChild(batch);
-     * @endcode
-     */
-    virtual void setBatchNode(SpriteBatchNode *spriteBatchNode);
-
-    /// @} end of BatchNode methods
 
 
     /// @{
@@ -221,45 +169,6 @@ public:
      * Do not call it manually. Use setTextureRect instead.
      */
     virtual void setVertexRect(const Rect& rect);
-
-    /** @{
-     * Sets a new SpriteFrame to the Sprite.
-     */
-    virtual void setSpriteFrame(const std::string &spriteFrameName);
-    virtual void setSpriteFrame(SpriteFrame* newFrame);
-    /** @} */
-
-    /** @deprecated Use `setSpriteFrame()` instead. */
-    CC_DEPRECATED_ATTRIBUTE virtual void setDisplayFrame(SpriteFrame *newFrame) { setSpriteFrame(newFrame); }
-
-    /**
-     * Returns whether or not a SpriteFrame is being displayed.
-     */
-    virtual bool isFrameDisplayed(SpriteFrame *frame) const;
-
-    /**
-     * Returns the current displayed frame.
-     */
-    virtual SpriteFrame* getSpriteFrame() const;
-    /** @deprecated Use `getSpriteFrame()` instead.
-     * @js NA
-     */
-    CC_DEPRECATED_ATTRIBUTE virtual SpriteFrame* getDisplayFrame() const { return getSpriteFrame(); }
-    /** @deprecated Use `getSpriteFrame()` instead. */
-    CC_DEPRECATED_ATTRIBUTE virtual SpriteFrame* displayFrame() const { return getSpriteFrame(); };
-
-    /// @} End of frames methods
-
-
-    /// @{
-    /// @name Animation methods
-    /**
-     * Changes the display frame with animation name and index.
-     * The animation name will be get from the AnimationCache.
-     */
-    virtual void setDisplayFrameWithAnimationName(const std::string& animationName, ssize_t frameIndex);
-    /// @}
-
 
     /// @{
     /// @name Sprite Properties' setter/getters.
@@ -398,11 +307,6 @@ public:
     inline const BlendFunc& getBlendFunc() const override { return _blendFunc; }
     /// @}
 
-    /**
-     * @js NA
-     */
-    virtual std::string getDescription() const override;
-
     /// @{
     /// @name Functions inherited from Node.
     virtual void setScaleX(float scaleX) override;
@@ -429,7 +333,6 @@ public:
     virtual void setScale(float scale) override;
     virtual void setPositionZ(float positionZ) override;
     virtual void setAnchorPoint(const Vec2& anchor) override;
-    virtual void ignoreAnchorPointForPosition(bool value) override;
     virtual void setVisible(bool bVisible) override;
     virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags, const ZPath &) override;
     virtual void setOpacityModifyRGB(bool modify) override;
@@ -483,25 +386,6 @@ CC_CONSTRUCTOR_ACCESS:
     virtual bool initWithTexture(Texture2D *texture, const Rect& rect, bool rotated);
 
     /**
-     * Initializes a sprite with an SpriteFrame. The texture and rect in SpriteFrame will be applied on this sprite.
-     *
-     * @param   spriteFrame  A SpriteFrame object. It should includes a valid texture and a rect.
-     * @return  True if the sprite is initialized properly, false otherwise.
-     */
-    virtual bool initWithSpriteFrame(SpriteFrame *spriteFrame);
-
-    /**
-     * Initializes a sprite with an sprite frame name.
-     *
-     * A SpriteFrame will be fetched from the SpriteFrameCache by name.
-     * If the SpriteFrame doesn't exist it will raise an exception.
-     *
-     * @param   spriteFrameName  A key string that can fected a volid SpriteFrame from SpriteFrameCache.
-     * @return  True if the sprite is initialized properly, false otherwise.
-     */
-    virtual bool initWithSpriteFrameName(const std::string& spriteFrameName);
-
-    /**
      * Initializes a sprite with an image filename.
      *
      * This method will find filename from local file system, load its content to Texture2D,
@@ -533,7 +417,6 @@ protected:
     void updateColor() override;
     virtual void setTextureCoords(Rect rect);
     virtual void updateBlendFunc();
-    virtual void setReorderChildDirtyRecursively();
     virtual void setDirtyRecursively(bool value);
 
     //
@@ -541,7 +424,6 @@ protected:
     //
     TextureAtlas*       _textureAtlas;      /// SpriteBatchNode texture atlas (weak reference)
     ssize_t             _atlasIndex;        /// Absolute (real) Index on the SpriteSheet
-    SpriteBatchNode*    _batchNode;         /// Used batch node (weak reference)
 
     bool                _dirty;             /// Whether the sprite needs to be updated
     bool                _recursiveDirty;    /// Whether all of the sprite's children needs to be updated
@@ -553,7 +435,6 @@ protected:
     //
     BlendFunc        _blendFunc;            /// It's required for TextureProtocol inheritance
     Texture2D*       _texture;              /// Texture2D object that is used to render the sprite
-    SpriteFrame*     _spriteFrame;
     QuadCommand      _quadCommand;          /// quad command
 #if CC_SPRITE_DEBUG_DRAW
     DrawNode *_debugDrawNode;

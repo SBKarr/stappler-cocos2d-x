@@ -47,11 +47,6 @@ class CC_DLL Action : public Ref, public Clonable
 public:
     /** Default tag used for all the actions. */
     static const uint32_t INVALID_TAG = std::numeric_limits<uint32_t>::max();
-    /**
-     * @js NA
-     * @lua NA
-     */
-    virtual std::string description() const;
 
     /** Returns a clone of action.
      *

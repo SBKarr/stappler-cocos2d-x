@@ -29,17 +29,10 @@ THE SOFTWARE.
 
 #include <algorithm>
 
-#include "2d/CCSpriteBatchNode.h"
-#include "2d/CCAnimationCache.h"
-#include "2d/CCSpriteFrame.h"
-#include "2d/CCSpriteFrameCache.h"
 #include "renderer/CCTextureCache.h"
 #include "renderer/CCTexture2D.h"
 #include "renderer/CCRenderer.h"
 #include "base/CCDirector.h"
-
-#include "base/ccUTF8.h"
-
 
 NS_CC_BEGIN
 
@@ -96,31 +89,6 @@ Sprite* Sprite::create(const std::string& filename, const Rect& rect)
     }
     CC_SAFE_DELETE(sprite);
     return nullptr;
-}
-
-Sprite* Sprite::createWithSpriteFrame(SpriteFrame *spriteFrame)
-{
-    Sprite *sprite = new (std::nothrow) Sprite();
-    if (sprite && spriteFrame && sprite->initWithSpriteFrame(spriteFrame))
-    {
-        sprite->autorelease();
-        return sprite;
-    }
-    CC_SAFE_DELETE(sprite);
-    return nullptr;
-}
-
-Sprite* Sprite::createWithSpriteFrameName(const std::string& spriteFrameName)
-{
-    SpriteFrame *frame = SpriteFrameCache::getInstance()->getSpriteFrameByName(spriteFrameName);
-
-#if COCOS2D_DEBUG > 0
-    char msg[256] = {0};
-    sprintf(msg, "Invalid spriteFrameName: %s", spriteFrameName.c_str());
-    CCASSERT(frame != nullptr, msg);
-#endif
-
-    return createWithSpriteFrame(frame);
 }
 
 Sprite* Sprite::create()
@@ -189,31 +157,12 @@ bool Sprite::initWithFile(const std::string &filename, const Rect& rect)
     return false;
 }
 
-bool Sprite::initWithSpriteFrameName(const std::string& spriteFrameName)
-{
-    CCASSERT(spriteFrameName.size() > 0, "Invalid spriteFrameName");
-
-    SpriteFrame *frame = SpriteFrameCache::getInstance()->getSpriteFrameByName(spriteFrameName);
-    return initWithSpriteFrame(frame);
-}
-
-bool Sprite::initWithSpriteFrame(SpriteFrame *spriteFrame)
-{
-    CCASSERT(spriteFrame != nullptr, "");
-
-    bool bRet = initWithTexture(spriteFrame->getTexture(), spriteFrame->getRect());
-    setSpriteFrame(spriteFrame);
-
-    return bRet;
-}
-
 // designated initializer
 bool Sprite::initWithTexture(Texture2D *texture, const Rect& rect, bool rotated)
 {
     bool result;
     if (Node::init())
     {
-        _batchNode = nullptr;
 
         _recursiveDirty = false;
         setDirty(false);
@@ -248,7 +197,6 @@ bool Sprite::initWithTexture(Texture2D *texture, const Rect& rect, bool rotated)
 
         // by default use "Self Render".
         // if the sprite is added to a batchnode, then it will automatically switch to "batchnode Render"
-        setBatchNode(nullptr);
         result = true;
     }
     else
@@ -261,10 +209,8 @@ bool Sprite::initWithTexture(Texture2D *texture, const Rect& rect, bool rotated)
 }
 
 Sprite::Sprite(void)
-: _batchNode(nullptr)
-, _shouldBeHidden(false)
+: _shouldBeHidden(false)
 , _texture(nullptr)
-, _spriteFrame(nullptr)
 , _insideBounds(true)
 {
 #if CC_SPRITE_DEBUG_DRAW
@@ -275,7 +221,6 @@ Sprite::Sprite(void)
 
 Sprite::~Sprite(void)
 {
-    CC_SAFE_RELEASE(_spriteFrame);
     CC_SAFE_RELEASE(_texture);
 }
 
@@ -317,8 +262,6 @@ void Sprite::setTexture(const std::string &filename)
 
 void Sprite::setTexture(Texture2D *texture)
 {
-    // If batchnode, then texture id should be the same
-    CCASSERT(! _batchNode || texture->getName() == _batchNode->getTexture()->getName(), "CCSprite: Batched sprites should use the same texture as the batchnode");
     // accept texture==nil as argument
     CCASSERT( !texture || dynamic_cast<Texture2D*>(texture), "setTexture expects a Texture2D. Invalid argument");
 
@@ -340,7 +283,7 @@ void Sprite::setTexture(Texture2D *texture)
         }
     }
 
-    if (!_batchNode && _texture != texture)
+    if (_texture != texture)
     {
         CC_SAFE_RETAIN(texture);
         CC_SAFE_RELEASE(_texture);
@@ -383,28 +326,19 @@ void Sprite::setTextureRect(const Rect& rect, bool rotated, const Size& untrimme
     _offsetPosition.x = relativeOffsetX + (_contentSize.width - _rect.size.width) / 2;
     _offsetPosition.y = relativeOffsetY + (_contentSize.height - _rect.size.height) / 2;
 
-    // rendering using batch node
-    if (_batchNode)
-    {
-        // update dirty_, don't update recursiveDirty_
-        setDirty(true);
-    }
-    else
-    {
-        // self rendering
+	// self rendering
 
-        // Atlas: Vertex
-        float x1 = 0.0f + _offsetPosition.x;
-        float y1 = 0.0f + _offsetPosition.y;
-        float x2 = x1 + _rect.size.width;
-        float y2 = y1 + _rect.size.height;
+	// Atlas: Vertex
+	float x1 = 0.0f + _offsetPosition.x;
+	float y1 = 0.0f + _offsetPosition.y;
+	float x2 = x1 + _rect.size.width;
+	float y2 = y1 + _rect.size.height;
 
-        // Don't update Z.
-        _quad.bl.vertices.set(x1, y1, 0.0f);
-        _quad.br.vertices.set(x2, y1, 0.0f);
-        _quad.tl.vertices.set(x1, y2, 0.0f);
-        _quad.tr.vertices.set(x2, y2, 0.0f);
-    }
+	// Don't update Z.
+	_quad.bl.vertices.set(x1, y1, 0.0f);
+	_quad.br.vertices.set(x2, y1, 0.0f);
+	_quad.tl.vertices.set(x1, y2, 0.0f);
+	_quad.tr.vertices.set(x2, y2, 0.0f);
 }
 
 // override this method to generate "double scale" sprites
@@ -417,7 +351,7 @@ void Sprite::setTextureCoords(Rect rect)
 {
     rect = CC_RECT_POINTS_TO_PIXELS(rect);
 
-    Texture2D *tex = _batchNode ? _textureAtlas->getTexture() : _texture;
+    Texture2D *tex = _texture;
     if (! tex)
     {
         return;
@@ -496,97 +430,6 @@ void Sprite::setTextureCoords(Rect rect)
     }
 }
 
-// MARK: visit, draw, transform
-
-void Sprite::updateTransform(void)
-{
-    CCASSERT(_batchNode, "updateTransform is only valid when Sprite is being rendered using an SpriteBatchNode");
-
-    // recalculate matrix only if it is dirty
-    if( isDirty() ) {
-
-        // If it is not visible, or one of its ancestors is not visible, then do nothing:
-        if( !_visible || ( _parent && _parent != _batchNode && static_cast<Sprite*>(_parent)->_shouldBeHidden) )
-        {
-            _quad.br.vertices.setZero();
-            _quad.tl.vertices.setZero();
-            _quad.tr.vertices.setZero();
-            _quad.bl.vertices.setZero();
-            _shouldBeHidden = true;
-        }
-        else
-        {
-            _shouldBeHidden = false;
-
-            if( ! _parent || _parent == _batchNode )
-            {
-                _transformToBatch = getNodeToParentTransform();
-            }
-            else
-            {
-                CCASSERT( dynamic_cast<Sprite*>(_parent), "Logic error in Sprite. Parent must be a Sprite");
-                const Mat4 &nodeToParent = getNodeToParentTransform();
-                Mat4 &parentTransform = static_cast<Sprite*>(_parent)->_transformToBatch;
-                _transformToBatch = parentTransform * nodeToParent;
-            }
-
-            //
-            // calculate the Quad based on the Affine Matrix
-            //
-
-            Size &size = _rect.size;
-
-            float x1 = _offsetPosition.x;
-            float y1 = _offsetPosition.y;
-
-            float x2 = x1 + size.width;
-            float y2 = y1 + size.height;
-            float x = _transformToBatch.m[12];
-            float y = _transformToBatch.m[13];
-
-            float cr = _transformToBatch.m[0];
-            float sr = _transformToBatch.m[1];
-            float cr2 = _transformToBatch.m[5];
-            float sr2 = -_transformToBatch.m[4];
-            float ax = x1 * cr - y1 * sr2 + x;
-            float ay = x1 * sr + y1 * cr2 + y;
-
-            float bx = x2 * cr - y1 * sr2 + x;
-            float by = x2 * sr + y1 * cr2 + y;
-
-            float cx = x2 * cr - y2 * sr2 + x;
-            float cy = x2 * sr + y2 * cr2 + y;
-
-            float dx = x1 * cr - y2 * sr2 + x;
-            float dy = x1 * sr + y2 * cr2 + y;
-
-            _quad.bl.vertices.set(RENDER_IN_SUBPIXEL(ax), RENDER_IN_SUBPIXEL(ay), _positionZ);
-            _quad.br.vertices.set(RENDER_IN_SUBPIXEL(bx), RENDER_IN_SUBPIXEL(by), _positionZ);
-            _quad.tl.vertices.set(RENDER_IN_SUBPIXEL(dx), RENDER_IN_SUBPIXEL(dy), _positionZ);
-            _quad.tr.vertices.set(RENDER_IN_SUBPIXEL(cx), RENDER_IN_SUBPIXEL(cy), _positionZ);
-        }
-
-        // MARMALADE CHANGE: ADDED CHECK FOR nullptr, TO PERMIT SPRITES WITH NO BATCH NODE / TEXTURE ATLAS
-        if (_textureAtlas)
-        {
-            _textureAtlas->updateQuad(&_quad, _atlasIndex);
-        }
-
-        _recursiveDirty = false;
-        setDirty(false);
-    }
-
-    // MARMALADE CHANGED
-    // recursively iterate over children
-/*    if( _hasChildren )
-    {
-        // MARMALADE: CHANGED TO USE Node*
-        // NOTE THAT WE HAVE ALSO DEFINED virtual Node::updateTransform()
-        arrayMakeObjectsPerformSelector(_children, updateTransform, Sprite*);
-    }*/
-    Node::updateTransform();
-}
-
 // draw
 
 void Sprite::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags, const ZPath &zPath)
@@ -620,19 +463,6 @@ void Sprite::addChild(Node *child, int zOrder, int tag)
 {
     CCASSERT(child != nullptr, "Argument must be non-nullptr");
 
-    if (_batchNode)
-    {
-        Sprite* childSprite = dynamic_cast<Sprite*>(child);
-        CCASSERT( childSprite, "CCSprite only supports Sprites as children when using SpriteBatchNode");
-        CCASSERT(childSprite->getTexture()->getName() == _textureAtlas->getTexture()->getName(), "");
-        //put it in descendants array of batch node
-        _batchNode->appendChild(childSprite);
-
-        if (!_reorderChildDirty)
-        {
-            setReorderChildDirtyRecursively();
-        }
-    }
     //CCNode already sets isReorderChildDirty_ so this needs to be after batchNode check
     Node::addChild(child, zOrder, tag);
 }
@@ -641,19 +471,6 @@ void Sprite::addChild(Node *child, int zOrder, const std::string &name)
 {
     CCASSERT(child != nullptr, "Argument must be non-nullptr");
 
-    if (_batchNode)
-    {
-        Sprite* childSprite = dynamic_cast<Sprite*>(child);
-        CCASSERT( childSprite, "CCSprite only supports Sprites as children when using SpriteBatchNode");
-        CCASSERT(childSprite->getTexture()->getName() == _textureAtlas->getTexture()->getName(), "");
-        //put it in descendants array of batch node
-        _batchNode->appendChild(childSprite);
-
-        if (!_reorderChildDirty)
-        {
-            setReorderChildDirtyRecursively();
-        }
-    }
     //CCNode already sets isReorderChildDirty_ so this needs to be after batchNode check
     Node::addChild(child, zOrder, name);
 }
@@ -663,38 +480,16 @@ void Sprite::reorderChild(Node *child, int zOrder)
     CCASSERT(child != nullptr, "child must be non null");
     CCASSERT(_children.contains(child), "child does not belong to this");
 
-    if( _batchNode && ! _reorderChildDirty)
-    {
-        setReorderChildDirtyRecursively();
-        _batchNode->reorderBatch(true);
-    }
-
     Node::reorderChild(child, zOrder);
 }
 
 void Sprite::removeChild(Node *child, bool cleanup)
 {
-    if (_batchNode)
-    {
-        _batchNode->removeSpriteFromAtlas((Sprite*)(child));
-    }
-
     Node::removeChild(child, cleanup);
 }
 
 void Sprite::removeAllChildrenWithCleanup(bool cleanup)
 {
-    if (_batchNode)
-    {
-        for(const auto &child : _children) {
-            Sprite* sprite = dynamic_cast<Sprite*>(child);
-            if (sprite)
-            {
-                _batchNode->removeSpriteFromAtlas(sprite);
-            }
-        }
-    }
-
     Node::removeAllChildrenWithCleanup(cleanup);
 }
 
@@ -704,12 +499,6 @@ void Sprite::sortAllChildren()
     {
         std::sort(std::begin(_children), std::end(_children), nodeComparisonLess);
 
-        if ( _batchNode)
-        {
-            for(const auto &child : _children)
-                child->sortAllChildren();
-        }
-
         _reorderChildDirty = false;
     }
 }
@@ -718,21 +507,6 @@ void Sprite::sortAllChildren()
 // Node property overloads
 // used only when parent is SpriteBatchNode
 //
-
-void Sprite::setReorderChildDirtyRecursively(void)
-{
-    //only set parents flag the first time
-    if ( ! _reorderChildDirty )
-    {
-        _reorderChildDirty = true;
-        Node* node = static_cast<Node*>(_parent);
-        while (node && node != _batchNode)
-        {
-            static_cast<Sprite*>(node)->setReorderChildDirtyRecursively();
-            node=node->getParent();
-        }
-    }
-}
 
 void Sprite::setDirtyRecursively(bool bValue)
 {
@@ -837,12 +611,6 @@ void Sprite::setAnchorPoint(const Vec2& anchor)
     SET_DIRTY_RECURSIVELY();
 }
 
-void Sprite::ignoreAnchorPointForPosition(bool value)
-{
-    CCASSERT(! _batchNode, "ignoreAnchorPointForPosition is invalid in Sprite");
-    Node::ignoreAnchorPointForPosition(value);
-}
-
 void Sprite::setVisible(bool bVisible)
 {
     Node::setVisible(bVisible);
@@ -898,21 +666,6 @@ void Sprite::updateColor(void)
     _quad.tl.colors = color4;
     _quad.tr.colors = color4;
 
-    // renders using batch node
-    if (_batchNode)
-    {
-        if (_atlasIndex != INDEX_NOT_INITIALIZED)
-        {
-            _textureAtlas->updateQuad(&_quad, _atlasIndex);
-        }
-        else
-        {
-            // no need to set it recursively
-            // update dirty_, don't update recursiveDirty_
-            setDirty(true);
-        }
-    }
-
     // self render
     // do nothing
 }
@@ -931,114 +684,10 @@ bool Sprite::isOpacityModifyRGB(void) const
     return _opacityModifyRGB;
 }
 
-// MARK: Frames
-
-void Sprite::setSpriteFrame(const std::string &spriteFrameName)
-{
-    SpriteFrameCache *cache = SpriteFrameCache::getInstance();
-    SpriteFrame *spriteFrame = cache->getSpriteFrameByName(spriteFrameName);
-
-    CCASSERT(spriteFrame, std::string("Invalid spriteFrameName :").append(spriteFrameName).c_str());
-
-    setSpriteFrame(spriteFrame);
-}
-
-void Sprite::setSpriteFrame(SpriteFrame *spriteFrame)
-{
-    // retain the sprite frame
-    // do not removed by SpriteFrameCache::removeUnusedSpriteFrames
-    if (_spriteFrame != spriteFrame)
-    {
-        CC_SAFE_RELEASE(_spriteFrame);
-        _spriteFrame = spriteFrame;
-        spriteFrame->retain();
-    }
-    _unflippedOffsetPositionFromCenter = spriteFrame->getOffset();
-
-    Texture2D *texture = spriteFrame->getTexture();
-    // update texture before updating texture rect
-    if (texture != _texture)
-    {
-        setTexture(texture);
-    }
-
-    // update rect
-    _rectRotated = spriteFrame->isRotated();
-    setTextureRect(spriteFrame->getRect(), _rectRotated, spriteFrame->getOriginalSize());
-}
-
-void Sprite::setDisplayFrameWithAnimationName(const std::string& animationName, ssize_t frameIndex)
-{
-    CCASSERT(animationName.size()>0, "CCSprite#setDisplayFrameWithAnimationName. animationName must not be nullptr");
-
-    Animation *a = AnimationCache::getInstance()->getAnimation(animationName);
-
-    CCASSERT(a, "CCSprite#setDisplayFrameWithAnimationName: Frame not found");
-
-    AnimationFrame* frame = a->getFrames().at(frameIndex);
-
-    CCASSERT(frame, "CCSprite#setDisplayFrame. Invalid frame");
-
-    setSpriteFrame(frame->getSpriteFrame());
-}
-
-bool Sprite::isFrameDisplayed(SpriteFrame *frame) const
-{
-    Rect r = frame->getRect();
-
-    return (r.equals(_rect) &&
-            frame->getTexture()->getName() == _texture->getName() &&
-            frame->getOffset().equals(_unflippedOffsetPositionFromCenter));
-}
-
-SpriteFrame* Sprite::getSpriteFrame() const
-{
-    return SpriteFrame::createWithTexture(_texture,
-                                           CC_RECT_POINTS_TO_PIXELS(_rect),
-                                           _rectRotated,
-                                           CC_POINT_POINTS_TO_PIXELS(_unflippedOffsetPositionFromCenter),
-                                           CC_SIZE_POINTS_TO_PIXELS(_contentSize));
-}
-
-SpriteBatchNode* Sprite::getBatchNode() const
-{
-    return _batchNode;
-}
-
-void Sprite::setBatchNode(SpriteBatchNode *spriteBatchNode)
-{
-    _batchNode = spriteBatchNode; // weak reference
-
-    // self render
-    if( ! _batchNode ) {
-        _atlasIndex = INDEX_NOT_INITIALIZED;
-        setTextureAtlas(nullptr);
-        _recursiveDirty = false;
-        setDirty(false);
-
-        float x1 = _offsetPosition.x;
-        float y1 = _offsetPosition.y;
-        float x2 = x1 + _rect.size.width;
-        float y2 = y1 + _rect.size.height;
-        _quad.bl.vertices.set( x1, y1, 0 );
-        _quad.br.vertices.set(x2, y1, 0);
-        _quad.tl.vertices.set(x1, y2, 0);
-        _quad.tr.vertices.set(x2, y2, 0);
-
-    } else {
-
-        // using batch
-        _transformToBatch = Mat4::IDENTITY;
-        setTextureAtlas(_batchNode->getTextureAtlas()); // weak ref
-    }
-}
-
 // MARK: Texture protocol
 
 void Sprite::updateBlendFunc(void)
 {
-    CCASSERT(! _batchNode, "CCSprite: updateBlendFunc doesn't work when the sprite is rendered using a SpriteBatchNode");
-
     // it is possible to have an untextured sprite
     if (! _texture || ! _texture->hasPremultipliedAlpha())
     {
@@ -1050,16 +699,6 @@ void Sprite::updateBlendFunc(void)
         _blendFunc = BlendFunc::ALPHA_PREMULTIPLIED;
         setOpacityModifyRGB(true);
     }
-}
-
-std::string Sprite::getDescription() const
-{
-    int texture_id = -1;
-    if( _batchNode )
-        texture_id = _batchNode->getTextureAtlas()->getTexture()->getName();
-    else
-        texture_id = _texture->getName();
-    return StringUtils::format("<Sprite | Tag = %d, TextureID = %d>", _tag, texture_id );
 }
 
 NS_CC_END

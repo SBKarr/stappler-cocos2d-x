@@ -70,13 +70,11 @@ namespace cocos2d {
     jobject JniHelper::classloader = nullptr;
 
     JavaVM* JniHelper::getJavaVM() {
-        pthread_t thisthread = pthread_self();
         //LOGD("JniHelper::getJavaVM(), pthread_self() = %ld", thisthread);
         return _psJavaVM;
     }
 
     void JniHelper::setJavaVM(JavaVM *javaVM) {
-        pthread_t thisthread = pthread_self();
         //LOGD("JniHelper::setJavaVM(%p), pthread_self() = %ld", javaVM, thisthread);
         _psJavaVM = javaVM;
 

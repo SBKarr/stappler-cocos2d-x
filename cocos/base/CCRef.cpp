@@ -26,7 +26,6 @@ THE SOFTWARE.
 #include "base/CCRef.h"
 #include "base/CCAutoreleasePool.h"
 #include "base/ccMacros.h"
-#include "base/CCScriptSupport.h"
 
 NS_CC_BEGIN
 

@@ -202,12 +202,6 @@ public:
      * @lua NA
      */
     virtual ~Texture2D();
-    /**
-     Get texutre name, dimensions and coordinates message by a string.
-     * @js NA
-     * @lua NA
-     */
-    virtual std::string getDescription() const;
 
 	/** Release only the gl texture.
      * @js NA
@@ -279,24 +273,6 @@ public:
     @param format Texture pixel formats.
     **/
     bool initWithImage(Image * image, PixelFormat format);
-
-    /** Initializes a texture from a string with dimensions, alignment, font name and font size.
-
-     @param text A null terminated string.
-     @param fontName The font name.
-     @param fontSize The font size.
-     @param dimensions The font dimension.
-     @param hAlignment The font horizontal text alignment type.
-     @param vAlignment The font vertical text alignment type.
-     */
-    bool initWithString(const char *text,  const std::string &fontName, float fontSize, const Size& dimensions = Size(0, 0), TextHAlignment hAlignment = TextHAlignment::CENTER, TextVAlignment vAlignment = TextVAlignment::TOP);
-
-    /** Initializes a texture from a string using a text definition.
-
-     @param text A null terminated string.
-     @param textDefinition A FontDefinition object contains font attributes.
-     */
-    bool initWithString(const char *text, const FontDefinition& textDefinition);
 
     /** Sets the min filter, mag filter, wrap s and wrap t texture parameters.
     If the texture size is NPOT (non power of 2), then in can only use GL_CLAMP_TO_EDGE in GL_TEXTURE_WRAP_{S,T}.

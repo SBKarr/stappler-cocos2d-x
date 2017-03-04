@@ -38,7 +38,6 @@ THE SOFTWARE.
 #include "base/CCScheduler.h"
 #include "platform/CCFileUtils.h"
 #include "base/ccUtils.h"
-#include "base/ccUTF8.h"
 
 
 #ifdef EMSCRIPTEN
@@ -78,20 +77,6 @@ TextureCache::~TextureCache()
 
 void TextureCache::destroyInstance()
 {
-}
-
-TextureCache * TextureCache::sharedTextureCache()
-{
-    return Director::getInstance()->getTextureCache();
-}
-
-void TextureCache::purgeSharedTextureCache()
-{
-}
-
-std::string TextureCache::getDescription() const
-{
-    return StringUtils::format("<TextureCache | Number of textures = %d>", static_cast<int>(_textures.size()));
 }
 
 void TextureCache::addImageAsync(const std::string &path, const std::function<void(Texture2D*)>& callback)
@@ -579,8 +564,8 @@ VolatileTexture::VolatileTexture(Texture2D *t)
 , _textureData(nullptr)
 , _pixelFormat(Texture2D::PixelFormat::RGBA8888)
 , _fileName("")
-, _text("")
 , _uiImage(nullptr)
+, _text("")
 , _hasMipmaps(false)
 {
     _texParams.minFilter = GL_LINEAR;
@@ -653,20 +638,6 @@ void VolatileTextureMgr::addDataTexture(Texture2D *tt, void* data, int dataLen, 
     vt->_dataLen = dataLen;
     vt->_pixelFormat = pixelFormat;
     vt->_textureSize = contentSize;
-}
-
-void VolatileTextureMgr::addStringTexture(Texture2D *tt, const char* text, const FontDefinition& fontDefinition)
-{
-    if (_isReloading)
-    {
-        return;
-    }
-
-    VolatileTexture *vt = findVolotileTexture(tt);
-
-    vt->_cashedImageType = VolatileTexture::kString;
-    vt->_text     = text;
-    vt->_fontDefinition = fontDefinition;
 }
 
 void VolatileTextureMgr::setHasMipmaps(Texture2D *t, bool hasMipmaps)
@@ -747,11 +718,6 @@ void VolatileTextureMgr::reloadAllTextures()
                                           vt->_pixelFormat,
                                           vt->_textureSize.width,
                                           vt->_textureSize.height);
-            }
-            break;
-        case VolatileTexture::kString:
-            {
-                vt->_texture->initWithString(vt->_text.c_str(), vt->_fontDefinition);
             }
             break;
         case VolatileTexture::kImage:

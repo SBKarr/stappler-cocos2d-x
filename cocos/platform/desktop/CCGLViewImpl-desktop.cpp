@@ -33,9 +33,7 @@ THE SOFTWARE.
 #include "base/CCEventDispatcher.h"
 #include "base/CCEventKeyboard.h"
 #include "base/CCEventMouse.h"
-#include "base/CCIMEDispatcher.h"
 #include "base/ccUtils.h"
-#include "base/ccUTF8.h"
 
 #if (LINUX || __MINGW32__)
 #include "SPPlatform.h"

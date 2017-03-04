@@ -45,7 +45,6 @@ THE SOFTWARE.
 #include "renderer/CCGLProgram.h"
 #include "renderer/ccGLStateCache.h"
 #include "renderer/CCGLProgramCache.h"
-#include "base/ccUTF8.h"
 
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
@@ -915,11 +914,6 @@ bool Texture2D::updateWithData(const void *data,int offsetX,int offsetY,int widt
     return false;
 }
 
-std::string Texture2D::getDescription() const
-{
-    return StringUtils::format("<Texture2D | Name = %u | Dimensions = %ld x %ld | Coordinates = (%.2f, %.2f)>", _name, (long)_pixelsWide, (long)_pixelsHigh, _maxS, _maxT);
-}
-
 // implementation Texture2D (Image)
 bool Texture2D::initWithImage(Image *image)
 {
@@ -1034,7 +1028,7 @@ Texture2D::PixelFormat Texture2D::convertI8ToFormat(const unsigned char* data, s
         // unsupport convertion or don't need to convert
         if (format != PixelFormat::AUTO && format != PixelFormat::I8)
         {
-            CCLOG("Can not convert image format PixelFormat::I8 to format ID:%d, we will use it's origin format PixelFormat::I8", format);
+            CCLOG("Can not convert image format PixelFormat::I8 to format ID:%d, we will use it's origin format PixelFormat::I8", int(format));
         }
 
         *outData = (unsigned char*)data;
@@ -1088,7 +1082,7 @@ Texture2D::PixelFormat Texture2D::convertAI88ToFormat(const unsigned char* data,
         // unsupport convertion or don't need to convert
         if (format != PixelFormat::AUTO && format != PixelFormat::AI88)
         {
-            CCLOG("Can not convert image format PixelFormat::AI88 to format ID:%d, we will use it's origin format PixelFormat::AI88", format);
+            CCLOG("Can not convert image format PixelFormat::AI88 to format ID:%d, we will use it's origin format PixelFormat::AI88", int(format));
         }
 
         *outData = (unsigned char*)data;
@@ -1138,7 +1132,7 @@ Texture2D::PixelFormat Texture2D::convertRGB888ToFormat(const unsigned char* dat
         // unsupport convertion or don't need to convert
         if (format != PixelFormat::AUTO && format != PixelFormat::RGB888)
         {
-            CCLOG("Can not convert image format PixelFormat::RGB888 to format ID:%d, we will use it's origin format PixelFormat::RGB888", format);
+            CCLOG("Can not convert image format PixelFormat::RGB888 to format ID:%d, we will use it's origin format PixelFormat::RGB888", int(format));
         }
 
         *outData = (unsigned char*)data;
@@ -1192,7 +1186,7 @@ Texture2D::PixelFormat Texture2D::convertRGBA8888ToFormat(const unsigned char* d
         // unsupport convertion or don't need to convert
         if (format != PixelFormat::AUTO && format != PixelFormat::RGBA8888)
         {
-            CCLOG("Can not convert image format PixelFormat::RGBA8888 to format ID:%d, we will use it's origin format PixelFormat::RGBA8888", format);
+            CCLOG("Can not convert image format PixelFormat::RGBA8888 to format ID:%d, we will use it's origin format PixelFormat::RGBA8888", int(format));
         }
 
         *outData = (unsigned char*)data;
@@ -1241,106 +1235,12 @@ Texture2D::PixelFormat Texture2D::convertDataToFormat(const unsigned char* data,
     case PixelFormat::RGBA8888:
         return convertRGBA8888ToFormat(data, dataLen, format, outData, outDataLen);
     default:
-        CCLOG("unsupport convert for format %d to format %d", originFormat, format);
+        CCLOG("unsupport convert for format %d to format %d", int(originFormat), int(format));
         *outData = (unsigned char*)data;
         *outDataLen = dataLen;
         return originFormat;
     }
 }
-
-// implementation Texture2D (Text)
-bool Texture2D::initWithString(const char *text, const std::string& fontName, float fontSize, const Size& dimensions/* = Size(0, 0)*/, TextHAlignment hAlignment/* =  TextHAlignment::CENTER */, TextVAlignment vAlignment/* =  TextVAlignment::TOP */)
-{
-    FontDefinition tempDef;
-
-    tempDef._shadow._shadowEnabled = false;
-    tempDef._stroke._strokeEnabled = false;
-
-
-    tempDef._fontName      = fontName;
-    tempDef._fontSize      = fontSize;
-    tempDef._dimensions    = dimensions;
-    tempDef._alignment     = hAlignment;
-    tempDef._vertAlignment = vAlignment;
-    tempDef._fontFillColor = Color3B::WHITE;
-
-    return initWithString(text, tempDef);
-}
-
-bool Texture2D::initWithString(const char *text, const FontDefinition& textDefinition)
-{
-    if(!text || 0 == strlen(text))
-    {
-        return false;
-    }
-
-#if CC_ENABLE_CACHE_TEXTURE_DATA
-    // cache the texture data
-    VolatileTextureMgr::addStringTexture(this, text, textDefinition);
-#endif
-
-    bool ret = false;
-    Device::TextAlign align;
-
-    if (TextVAlignment::TOP == textDefinition._vertAlignment)
-    {
-        align = (TextHAlignment::CENTER == textDefinition._alignment) ? Device::TextAlign::TOP
-        : (TextHAlignment::LEFT == textDefinition._alignment) ? Device::TextAlign::TOP_LEFT : Device::TextAlign::TOP_RIGHT;
-    }
-    else if (TextVAlignment::CENTER == textDefinition._vertAlignment)
-    {
-        align = (TextHAlignment::CENTER == textDefinition._alignment) ? Device::TextAlign::CENTER
-        : (TextHAlignment::LEFT == textDefinition._alignment) ? Device::TextAlign::LEFT : Device::TextAlign::RIGHT;
-    }
-    else if (TextVAlignment::BOTTOM == textDefinition._vertAlignment)
-    {
-        align = (TextHAlignment::CENTER == textDefinition._alignment) ? Device::TextAlign::BOTTOM
-        : (TextHAlignment::LEFT == textDefinition._alignment) ? Device::TextAlign::BOTTOM_LEFT : Device::TextAlign::BOTTOM_RIGHT;
-    }
-    else
-    {
-        CCASSERT(false, "Not supported alignment format!");
-        return false;
-    }
-
-#if (CC_TARGET_PLATFORM != CC_PLATFORM_ANDROID) && (CC_TARGET_PLATFORM != CC_PLATFORM_IOS)
-    CCASSERT(textDefinition._stroke._strokeEnabled == false, "Currently stroke only supported on iOS and Android!");
-#endif
-
-    PixelFormat      pixelFormat = g_defaultAlphaPixelFormat;
-    unsigned char* outTempData = nullptr;
-    ssize_t outTempDataLen = 0;
-
-    int imageWidth;
-    int imageHeight;
-    auto textDef = textDefinition;
-    auto contentScaleFactor = CC_CONTENT_SCALE_FACTOR();
-    textDef._fontSize *= contentScaleFactor;
-    textDef._dimensions.width *= contentScaleFactor;
-    textDef._dimensions.height *= contentScaleFactor;
-    textDef._stroke._strokeSize *= contentScaleFactor;
-    textDef._shadow._shadowEnabled = false;
-
-    bool hasPremultipliedAlpha;
-    Data outData = Device::getTextureDataForText(text, textDef, align, imageWidth, imageHeight, hasPremultipliedAlpha);
-    if(outData.isNull())
-    {
-        return false;
-    }
-
-    pixelFormat = convertDataToFormat(outData.getBytes(), imageWidth*imageHeight*4, PixelFormat::RGBA8888, pixelFormat, &outTempData, &outTempDataLen);
-
-    ret = initWithData(outTempData, outTempDataLen, pixelFormat, imageWidth, imageHeight);
-
-    if (outTempData != nullptr && outTempData != outData.getBytes())
-    {
-        free(outTempData);
-    }
-    _hasPremultipliedAlpha = hasPremultipliedAlpha;
-
-    return ret;
-}
-
 
 // implementation Texture2D (Drawing)
 

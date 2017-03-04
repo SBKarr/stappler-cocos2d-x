@@ -111,7 +111,6 @@ extern "C" {
 
     JNIEXPORT jboolean JNICALL Java_org_cocos2dx_lib_Cocos2dxRenderer_nativeKeyDown(JNIEnv * env, jobject thiz, jint keyCode) {
         stappler::platform::render::_requestRender();
-        Director* pDirector = Director::getInstance();
 
         auto iterKeyCode = g_keyCodeMap.find(keyCode);
         if (iterKeyCode == g_keyCodeMap.end()) {

@@ -60,10 +60,6 @@ public:
         GROUP_COMMAND,
         /**Mesh command, used to draw 3D meshes.*/
         MESH_COMMAND,
-        /**Primitive command, used to draw primitives such as lines, points and triangles.*/
-        PRIMITIVE_COMMAND,
-        /**Triangles command, used to draw triangles.*/
-        TRIANGLES_COMMAND,
         SP_DYNAMIC_COMMAND,
     };
 

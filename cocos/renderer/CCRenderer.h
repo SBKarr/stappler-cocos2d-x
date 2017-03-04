@@ -43,8 +43,6 @@ NS_CC_BEGIN
 
 class EventListenerCustom;
 class QuadCommand;
-class TrianglesCommand;
-class MeshCommand;
 
 /** Class that knows how to sort `RenderCommand` objects.
  Since the commands that have `z == 0` are "pushed back" in
@@ -216,7 +214,6 @@ protected:
     void setupVBOAndVAO();
     void setupVBO();
     void mapBuffers();
-    void drawBatchedTriangles();
     void drawBatchedQuads();
 
     //Draw the previews queued quads and flush previous context
@@ -224,15 +221,11 @@ protected:
 
     void flush2D();
 
-    void flush3D();
-
     void flushQuads();
-    void flushTriangles();
 
     void processRenderCommand(RenderCommand* command);
     void visitRenderQueue(RenderQueue& queue);
 
-    void fillVerticesAndIndices(const TrianglesCommand* cmd);
     void fillQuads(const QuadCommand* cmd);
 
 protected:
@@ -241,8 +234,6 @@ protected:
 
     uint32_t _lastMaterialID;
 
-    MeshCommand*              _lastBatchedMeshCommand;
-    std::vector<TrianglesCommand*> _batchedCommands;
     std::vector<QuadCommand*> _batchQuadCommands;
 
     //for TrianglesCommand
