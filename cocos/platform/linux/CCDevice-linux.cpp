@@ -111,16 +111,6 @@ void Device::setAccelerometerInterval(float interval)
 
 }
 
-Data Device::getTextureDataForText(const char * text, const FontDefinition& textDefinition, TextAlign align, int &width, int &height, bool& hasPremultipliedAlpha)
-{
-    Data ret;
-    do
-    {
-    } while (0);
-
-    return ret;
-}
-
 void Device::setKeepScreenOn(bool value)
 {
 }

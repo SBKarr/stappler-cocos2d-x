@@ -69,6 +69,19 @@ namespace {
         PixelFormatInfoMapValue(Texture2D::PixelFormat::I8, Texture2D::PixelFormatInfo(GL_LUMINANCE, GL_LUMINANCE, GL_UNSIGNED_BYTE, 8, false, false)),
         PixelFormatInfoMapValue(Texture2D::PixelFormat::AI88, Texture2D::PixelFormatInfo(GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, 16, false, true)),
 
+#ifdef GL_RED_EXT
+		PixelFormatInfoMapValue(Texture2D::PixelFormat::R8, Texture2D::PixelFormatInfo(GL_RED_EXT, GL_RED_EXT, GL_UNSIGNED_BYTE, 8, false, false)),
+#else
+		PixelFormatInfoMapValue(Texture2D::PixelFormat::R8, Texture2D::PixelFormatInfo(GL_R8, GL_RED, GL_UNSIGNED_BYTE, 8, false, false)),
+#endif
+
+#ifdef GL_RG_EXT
+		PixelFormatInfoMapValue(Texture2D::PixelFormat::AI88, Texture2D::PixelFormatInfo(GL_RG_EXT, GL_RG_EXT, GL_UNSIGNED_BYTE, 16, false, true)),
+#else
+		PixelFormatInfoMapValue(Texture2D::PixelFormat::AI88, Texture2D::PixelFormatInfo(GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 16, false, true)),
+#endif
+
+
 #ifdef GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG
         PixelFormatInfoMapValue(Texture2D::PixelFormat::PVRTC2, Texture2D::PixelFormatInfo(GL_COMPRESSED_RGB_PVRTC_2BPPV1_IMG, 0xFFFFFFFF, 0xFFFFFFFF, 2, true, false)),
         PixelFormatInfoMapValue(Texture2D::PixelFormat::PVRTC2A, Texture2D::PixelFormatInfo(GL_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG, 0xFFFFFFFF, 0xFFFFFFFF, 2, true, true)),
@@ -466,6 +479,10 @@ Texture2D::PixelFormat Texture2D::getPixelFormat() const
     return _pixelFormat;
 }
 
+Texture2D::PixelFormat Texture2D::getReferenceFormat() const {
+	return _referenceFormat;
+}
+
 int Texture2D::getPixelsWide() const
 {
     return _pixelsWide;
@@ -548,6 +565,62 @@ bool Texture2D::init(Texture2D::PixelFormat pixelFormat, int pixelsWide, int pix
         return false;
     }
 
+    if (init == RenderTarget) {
+    	_renderTarget = true;
+    	_referenceFormat = pixelFormat;
+
+    	switch (pixelFormat) {
+    	case PixelFormat::RGB565:   // default color-renderable formats
+    	case PixelFormat::RGBA4444:
+    	case PixelFormat::RGB5A1:
+    		break;
+    	case PixelFormat::AUTO: // fallback to RGBA4444
+    		pixelFormat = PixelFormat::RGBA4444;
+    		break;
+    	case PixelFormat::RGBA8888:
+    		if (!Configuration::isRenderTargetSupported(Configuration::RenderTarget::RGBA8)) {
+    			pixelFormat = PixelFormat::RGBA4444;
+    		}
+    		break;
+    	case PixelFormat::RGB888:
+    		if (!Configuration::isRenderTargetSupported(Configuration::RenderTarget::RGB8)) {
+    			pixelFormat = PixelFormat::RGB565;
+    		}
+    		break;
+    	case PixelFormat::AI88:
+    	case PixelFormat::RG88:
+    		if (!Configuration::isRenderTargetSupported(Configuration::RenderTarget::RG8)) {
+        		pixelFormat = PixelFormat::RGBA4444;
+    		} else {
+    			pixelFormat = PixelFormat::RG88;
+    		}
+    		break;
+    	case PixelFormat::A8:
+    	case PixelFormat::I8:
+    	case PixelFormat::R8:
+    		if (!Configuration::isRenderTargetSupported(Configuration::RenderTarget::R8)) {
+        		pixelFormat = PixelFormat::RGBA4444;
+    		} else {
+    			pixelFormat = PixelFormat::R8;
+    		}
+    		break;
+    	case PixelFormat::BGRA8888:
+		case PixelFormat::PVRTC4:
+		case PixelFormat::PVRTC4A:
+		case PixelFormat::PVRTC2:
+		case PixelFormat::PVRTC2A:
+		case PixelFormat::ETC:
+		case PixelFormat::S3TC_DXT1:
+		case PixelFormat::S3TC_DXT3:
+		case PixelFormat::S3TC_DXT5:
+		case PixelFormat::ATC_RGB:
+		case PixelFormat::ATC_EXPLICIT_ALPHA:
+		case PixelFormat::ATC_INTERPOLATED_ALPHA:
+			assert(false); // unsupported as render parget
+			break;
+    	}
+    }
+
     const PixelFormatInfo& info = _pixelFormatInfoTables.at(pixelFormat);
 
 	CCASSERT(!info.compressed, "Available only for plain uncompressed textures");
@@ -581,10 +654,6 @@ bool Texture2D::init(Texture2D::PixelFormat pixelFormat, int pixelsWide, int pix
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
         cocos2d::log("OpenGL error 0x%04X in %s %s %d\n", err, __FILE__, __FUNCTION__, __LINE__);
-    }
-
-    if (init == RenderTarget) {
-    	_renderTarget = true;
     }
 
     if (init != Empty) {
@@ -1339,6 +1408,10 @@ void Texture2D::generateMipmap()
 bool Texture2D::hasMipmaps() const
 {
     return _hasMipmaps;
+}
+
+bool Texture2D::isRenderTarget() const {
+	return _renderTarget;
 }
 
 void Texture2D::setTexParameters(const TexParams &texParams)

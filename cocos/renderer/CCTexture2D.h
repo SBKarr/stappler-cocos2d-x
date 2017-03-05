@@ -87,6 +87,10 @@ public:
         //! 16-bit textures used as masks
         AI88,
         //! 16-bit textures: RGBA4444
+        R8,
+        //! 8-bit texture render target
+        RG88,
+        //! 16-bit texture render target
         RGBA4444,
         //! 16-bit textures: RGB5A1
         RGB5A1,
@@ -349,8 +353,14 @@ public:
     /** Whether or not the texture has mip maps.*/
     bool hasMipmaps() const;
 
+    /** is texture created as render target */
+    bool isRenderTarget() const;
+
     /** Gets the pixel format of the texture. */
     Texture2D::PixelFormat getPixelFormat() const;
+
+    /** Gets the originel reference pixel format of the texture. */
+    Texture2D::PixelFormat getReferenceFormat() const;
 
     /** Gets the width of the texture in pixels. */
     int getPixelsWide() const;
@@ -440,6 +450,9 @@ protected:
     /** pixel format of the texture */
     Texture2D::PixelFormat _pixelFormat;
 
+    /** pixel formet, that was requested when texture created, used when render target format differs from pixel format */
+    Texture2D::PixelFormat _referenceFormat;
+
     /** width in pixels */
     int _pixelsWide;
 
@@ -468,6 +481,8 @@ protected:
     GLProgram* _shaderProgram;
 
     bool _antialiasEnabled;
+
+    /** is texture created as render target? */
     bool _renderTarget = false;
 
 public:

@@ -49,12 +49,27 @@ THE SOFTWARE.
 // normal process
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <android/api-level.h>
 // gl2.h doesn't define GLchar on Android
 typedef char GLchar;
 // android defines GL_BGRA_EXT but not GL_BRGA
 #ifndef GL_BGRA
 #define GL_BGRA  0x80E1
 #endif
+
+#if __ANDROID_API__ < 21
+#ifndef GL_ES_VERSION_3_0
+#ifndef GL_EXT_texture_rg
+#define GL_EXT_texture_rg 1
+#define GL_RED_EXT                        0x1903
+#define GL_RG_EXT                         0x8227
+#define GL_R8_EXT                         0x8229
+#define GL_RG8_EXT                        0x822B
+#endif /* GL_EXT_texture_rg */
+#endif
+#endif
+
+
 
 //declare here while define in EGLView_android.cpp
 extern PFNGLGENVERTEXARRAYSOESPROC glGenVertexArraysOESEXT;

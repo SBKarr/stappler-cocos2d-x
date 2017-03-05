@@ -36,6 +36,7 @@ static uint32_t s_supportedRenderTarget =
 #ifndef GL_ES_VERSION_2_0
 		toInt(Configuration::RenderTarget::RGBA8)
 		| toInt(Configuration::RenderTarget::RGB8)
+		| toInt(Configuration::RenderTarget::RG8)
 		| toInt(Configuration::RenderTarget::R8)
 		| toInt(Configuration::RenderTarget::A8);
 #else
@@ -137,7 +138,7 @@ void Configuration::gatherGPUInfo()
 	_data.setInteger(_maxSamplesAllowed, "gl.max_samples_allowed");
 #endif
 
-    CharReaderBase r(_glExtensions, strlen(_glExtensions));
+	CharReaderBase r(_glExtensions, strlen(_glExtensions));
 
     r.split<CharReaderBase::Chars<' '>>([&] (CharReaderBase &b) {
     	if (b == "GL_OES_compressed_ETC1_RGB8_texture") {
@@ -158,13 +159,35 @@ void Configuration::gatherGPUInfo()
     	} else if (b == "GL_OES_rgb8_rgba8") {
     		s_supportedRenderTarget |= (toInt(Configuration::RenderTarget::RGBA8) | toInt(Configuration::RenderTarget::RGB8));
     	} else if (b == "GL_EXT_texture_rg") {
-    		s_supportedRenderTarget |= toInt(Configuration::RenderTarget::R8);
+    		s_supportedRenderTarget |= toInt(Configuration::RenderTarget::R8) | toInt(Configuration::RenderTarget::RG8);
     	} else if (b == "GL_ARM_rgba8") {
     		s_supportedRenderTarget |= toInt(Configuration::RenderTarget::RGBA8);
 #endif
     	}
     });
 
+    String extraTargets;
+    if (s_supportedRenderTarget & toInt(Configuration::RenderTarget::RGBA8)) {
+    	extraTargets += "RGBA8 ";
+    }
+    if (s_supportedRenderTarget & toInt(Configuration::RenderTarget::RGB8)) {
+    	extraTargets += "RGB8 ";
+    }
+    if (s_supportedRenderTarget & toInt(Configuration::RenderTarget::RG8)) {
+    	extraTargets += "RG8 ";
+    }
+    if (s_supportedRenderTarget & toInt(Configuration::RenderTarget::R8)) {
+    	extraTargets += "R8 ";
+    }
+    if (s_supportedRenderTarget & toInt(Configuration::RenderTarget::A8)) {
+    	extraTargets += "A8 ";
+    }
+
+    if (!extraTargets.empty()) {
+    	extraTargets.pop_back();
+    }
+
+    _data.setString(extraTargets, "gl.extra_render_targets");
 	_data.setBool(_supportsETC1, "gl.supports_ETC1");
 	_data.setBool(_supportsS3TC, "gl.supports_S3TC");
 	_data.setBool(_supportsATITC, "gl.supports_ATITC");
