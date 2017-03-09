@@ -69,8 +69,6 @@ typedef char GLchar;
 #endif
 #endif
 
-
-
 //declare here while define in EGLView_android.cpp
 extern PFNGLGENVERTEXARRAYSOESPROC glGenVertexArraysOESEXT;
 extern PFNGLBINDVERTEXARRAYOESPROC glBindVertexArrayOESEXT;

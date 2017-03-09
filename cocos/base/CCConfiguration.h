@@ -146,6 +146,12 @@ public:
      */
 	bool supportsShareableVAO() const;
 
+	/** is device Supports glMapBuffer/glMapBufferOES */
+	bool supportsMapBuffer() const;
+
+	/** is openGL ES 3.0 calls supported */
+	bool supportsEs30Api() const;
+
     /** Max support directional light in shader, for Sprite3D.
      *
      * @return Maximum supports directional light in shader.
@@ -221,6 +227,8 @@ protected:
     bool            _supportsBGRA8888 = false;
     bool            _supportsDiscardFramebuffer = false;
     bool            _supportsShareableVAO = false;
+    bool            _supportsMapBuffer = false;
+    bool			_supportsEs30Api = false;
     GLint           _maxSamplesAllowed;
     GLint           _maxTextureUnits;
     char *          _glExtensions;

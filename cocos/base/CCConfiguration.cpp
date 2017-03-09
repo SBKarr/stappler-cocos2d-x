@@ -118,9 +118,17 @@ std::string Configuration::getInfo() const
 
 void Configuration::gatherGPUInfo()
 {
+	auto glVersion = (const char*)glGetString(GL_VERSION);
+
 	_data.setString((const char*)glGetString(GL_VENDOR), "gl.vendor");
 	_data.setString((const char*)glGetString(GL_RENDERER), "gl.renderer");
-	_data.setString((const char*)glGetString(GL_VERSION), "gl.version");
+	_data.setString(glVersion, "gl.version");
+
+	CharReaderBase vReader(glVersion);
+	if (vReader == "OpenGL ES 3.") {
+		_supportsEs30Api = true;
+		s_supportedRenderTarget |= toInt(Configuration::RenderTarget::R8) | toInt(Configuration::RenderTarget::RG8);
+	}
 
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &_maxTextureSize);
 	_data.setInteger(_maxTextureSize, "gl.max_texture_size");
@@ -138,9 +146,14 @@ void Configuration::gatherGPUInfo()
 	_data.setInteger(_maxSamplesAllowed, "gl.max_samples_allowed");
 #endif
 
+#ifndef GL_ES_VERSION_2_0
+	_supportsMapBuffer = true;
+#endif
+
 	CharReaderBase r(_glExtensions, strlen(_glExtensions));
 
     r.split<CharReaderBase::Chars<' '>>([&] (CharReaderBase &b) {
+    	//stappler::log::text("GLext", b.data(), b.size());
     	if (b == "GL_OES_compressed_ETC1_RGB8_texture") {
     		_supportsETC1 = true;
     	} else if (b == "GL_EXT_texture_compression_s3tc") {
@@ -153,9 +166,11 @@ void Configuration::gatherGPUInfo()
     		_supportsBGRA8888 = true;
     	} else if (b == "GL_EXT_discard_framebuffer") {
     		_supportsDiscardFramebuffer = true;
-    	} else if (b == "vertex_array_object") {
+    	} else if (b == "GL_OES_vertex_array_object") {
     		_supportsShareableVAO = true;
 #ifdef GL_ES_VERSION_2_0
+    	} else if (b == "GL_OES_mapbuffer") {
+    		_supportsMapBuffer = true;
     	} else if (b == "GL_OES_rgb8_rgba8") {
     		s_supportedRenderTarget |= (toInt(Configuration::RenderTarget::RGBA8) | toInt(Configuration::RenderTarget::RGB8));
     	} else if (b == "GL_EXT_texture_rg") {
@@ -195,6 +210,7 @@ void Configuration::gatherGPUInfo()
 	_data.setBool(_supportsBGRA8888, "gl.supports_BGRA8888");
 	_data.setBool(_supportsDiscardFramebuffer, "gl.supports_discard_framebuffer");
 	_data.setBool(_supportsShareableVAO, "gl.supports_vertex_array_object");
+	_data.setBool(_supportsMapBuffer, "gl.supports_map_buffer");
 
     CHECK_GL_ERROR_DEBUG();
 }
@@ -287,6 +303,13 @@ bool Configuration::supportsShareableVAO() const
 #else
     return false;
 #endif
+}
+
+bool Configuration::supportsMapBuffer() const {
+	return _supportsMapBuffer;
+}
+bool Configuration::supportsEs30Api() const {
+	return _supportsEs30Api;
 }
 
 int Configuration::getMaxSupportDirLightInShader() const
